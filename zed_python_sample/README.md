@@ -1,12 +1,12 @@
-# Stereolabs ZED - YOLO in Python
+# Stereolabs ZED - YOLO 3D in Python
 
 This package lets you use YOLO the deep learning object detector using the ZED stereo camera in Python 3.
 
 The left image will be used to display the detected objects alongside the distance of each, using the ZED Depth.
 
-
-![](../preview.png "ZED Python YOLO")
-
+<p align="center">
+  <img src="../preview.png" width=676 height=450>
+</p>
 
 ## Prerequisites
 
