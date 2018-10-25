@@ -10,7 +10,7 @@ The left image will be used to display the detected objects alongside the distan
 
 ## Prerequisites
 
-- Windows 7 64bits or later, Ubuntu 16.04
+- Ubuntu 16.04
 - [ZED SDK](https://www.stereolabs.com/developers/) and its dependencies ([CUDA](https://developer.nvidia.com/cuda-downloads))
 - OpenCV
 

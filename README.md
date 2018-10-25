@@ -17,10 +17,6 @@ The left image will be used to display the detected objects alongside the distan
 
 Please refer to [zed_python_sample](./zed_python_sample)
 
-## Setup YOLO C++
+## Setup YOLO C++ (Linux only)
 
 Please refer to [zed_cpp_sample](./zed_cpp_sample)
-
-### Known issue
-
-On Windows the C++ sample might crash at startup, it is recommended to use the python version instead
