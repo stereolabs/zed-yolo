@@ -65,11 +65,14 @@ std::vector<bbox_t_3d> getObjectDepth(std::vector<bbox_t> &bbox_vect, sl::Mat &x
                 }
             }
         }
-        float x_med = getMedian(x_vect);
-        float y_med = getMedian(y_vect);
-        float z_med = getMedian(z_vect);
 
-        bbox3d_vect.emplace_back(it, sl::float3(x_med, y_med, z_med));
+        if (x_vect.size() * y_vect.size() * z_vect.size() > 0) {
+            float x_med = getMedian(x_vect);
+            float y_med = getMedian(y_vect);
+            float z_med = getMedian(z_vect);
+
+            bbox3d_vect.emplace_back(it, sl::float3(x_med, y_med, z_med));
+        }
     }
 
     return bbox3d_vect;
@@ -195,7 +198,7 @@ int main(int argc, char *argv[]) {
     new_data = false;
 
     std::thread detect_thread(detectorThread, cfg_file, weights_file, thresh);
-    
+
     while (!exit_flag) {
 
         if (zed.grab() == sl::SUCCESS) {
