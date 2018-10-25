@@ -1,6 +1,6 @@
 # Stereolabs ZED - YOLO in Python or C++
 
-This package lets you use YOLO the deep learning object detector using the ZED stereo camera in Python 3 or C++.
+This package lets you use YOLO (v2 or v3), the deep learning object detector using the ZED stereo camera in Python 3 or C++.
 
 The left image will be used to display the detected objects alongside the distance of each, using the ZED Depth.
 
@@ -15,12 +15,12 @@ The left image will be used to display the detected objects alongside the distan
 
 ## Setup YOLO Python
 
-Please refer to [darknet_zed_python](./darknet_zed_python)
+Please refer to [zed_python_sample](./zed_python_sample)
 
 ## Setup YOLO C++
 
-Please refer to [darknet_zed_cpp](./darknet_zed_cpp)
+Please refer to [zed_cpp_sample](./zed_cpp_sample)
 
-### Note
+### Known issue
 
 On Windows the C++ sample might crash at startup, it is recommended to use the python version instead
