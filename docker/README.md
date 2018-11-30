@@ -6,7 +6,9 @@ Setup Docker and nvidia-docker, see https://github.com/stereolabs/zed-docker
 
 ## Build the image
 
-		docker build -t zed-yolo .
+```Bash
+docker build -t zed-yolo .
+```
 
 ## Run the image
 
