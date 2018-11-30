@@ -56,7 +56,7 @@ std::vector<bbox_t_3d> getObjectDepth(std::vector<bbox_t> &bbox_vect, sl::Mat &x
                     i = center_i + x;
                     j = center_j + y;
                     xyzrgba.getValue<sl::float4>(i, j, &out, sl::MEM_CPU);
-                    valid_measure = isfinite(out.z);
+                    valid_measure = std::isfinite(out.z);
                     if (valid_measure) {
                         x_vect.push_back(out.x);
                         y_vect.push_back(out.y);
