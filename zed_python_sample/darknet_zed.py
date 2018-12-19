@@ -1,21 +1,18 @@
 #!python3
 """
-Python 3 wrapper for identifying objects in images
+thon 3 wrapper for identifying objects in images
 
 Requires DLL compilation
 
 Original *nix 2.7: https://github.com/pjreddie/darknet/blob/0f110834f4e18b30d5f101bf8f1724c34b7b83db/python/darknet.py
-Windows Python 2.7 version: https://github.com/AlexeyAB/darknet/blob/fc496d52bf22a0bb257300d3c79be9cd80e722cb/build/darknet/x64/darknet.py
+Windows thon 2.7 version: https://github.com/AlexeyAB/darknet/blob/fc496d52bf22a0bb257300d3c79be9cd80e722cb/build/darknet/x64/darknet.py
 
 @author: Philip Kahn, Aymeric Dujardin
 @date: 20180911
 """
 # pylint: disable=R, W0401, W0614, W0703
 import cv2
-import pyzed.camera as zcam
-import pyzed.types as tp
-import pyzed.core as core
-import pyzed.defines as sl
+import pyzed.sl as sl
 from ctypes import *
 import math
 import random
@@ -327,24 +324,24 @@ def main(argv):
         elif opt in ("-s", "--svo_file"):
             svoPath = arg
 
-    init = zcam.PyInitParameters()
-    init.coordinate_units = sl.PyUNIT.PyUNIT_METER
+    init = sl.InitParameters()
+    init.coordinate_units = sl.UNIT.UNIT_METER
     if svoPath is not None:
         init.svo_input_filename = svoPath
 
-    cam = zcam.PyZEDCamera()
+    cam = sl.Camera()
     if not cam.is_opened():
         print("Opening ZED Camera...")
     status = cam.open(init)
-    if status != tp.PyERROR_CODE.PySUCCESS:
+    if status != sl.ERROR_CODE.SUCCESS:
         print(repr(status))
         exit()
 
-    runtime = zcam.PyRuntimeParameters()
+    runtime = sl.RuntimeParameters()
     # Use STANDARD sensing mode
-    runtime.sensing_mode = sl.PySENSING_MODE.PySENSING_MODE_STANDARD
-    mat = core.PyMat()
-    point_cloud_mat = core.PyMat()
+    runtime.sensing_mode = sl.SENSING_MODE.SENSING_MODE_STANDARD
+    mat = sl.Mat()
+    point_cloud_mat = sl.Mat()
 
     # Import the global variables. This lets us instance Darknet once, then just call performDetect() again without instancing again
     global metaMain, netMain, altNames  # pylint: disable=W0603
@@ -364,7 +361,7 @@ def main(argv):
     if metaMain is None:
         metaMain = load_meta(metaPath.encode("ascii"))
     if altNames is None:
-        # In Python 3, the metafile default access craps out on Windows (but not Linux)
+        # In thon 3, the metafile default access craps out on Windows (but not Linux)
         # Read the names file and create a list to feed to detect
         try:
             with open(metaPath) as metaFH:
@@ -393,12 +390,12 @@ def main(argv):
     key = ''
     while key != 113:  # for 'q' key
         err = cam.grab(runtime)
-        if err == tp.PyERROR_CODE.PySUCCESS:
-            cam.retrieve_image(mat, sl.PyVIEW.PyVIEW_LEFT)
+        if err == sl.ERROR_CODE.SUCCESS:
+            cam.retrieve_image(mat, sl.VIEW.VIEW_LEFT)
             image = mat.get_data()
 
             cam.retrieve_measure(
-                point_cloud_mat, sl.PyMEASURE.PyMEASURE_XYZRGBA)
+                point_cloud_mat, sl.MEASURE.MEASURE_XYZRGBA)
             depth = point_cloud_mat.get_data()
 
             # Do the detection
