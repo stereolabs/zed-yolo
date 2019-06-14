@@ -35,14 +35,9 @@ python3 darknet_zed.py -s /data/<path/to/SVO>
 
 ### Run the C++ sample
 
-From within the container compile the C++ sample :
+From within the container the C++ sample can be started :
 
 ```Bash
-cd /home/docker/zed-yolo/zed_cpp_sample/ ; mkdir build ; cd build; cmake .. ; make ; cd /home/docker/zed-yolo/
-```
-
-Then start it :
-
-```Bash
-zed_cpp_sample/build/darknet_zed libdarknet/data/coco.names libdarknet/cfg/yolov3-tiny.cfg yolov3-tiny.weights /data/<path/to/SVO>
+cd ~/darknet
+./uselib libdarknet/data/coco.names libdarknet/cfg/yolov3-tiny.cfg yolov3-tiny.weights /data/<path/to/SVO>
 ```
