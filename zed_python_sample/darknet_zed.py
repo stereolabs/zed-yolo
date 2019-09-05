@@ -196,7 +196,6 @@ predict_image = lib.network_predict_image
 predict_image.argtypes = [c_void_p, IMAGE]
 predict_image.restype = POINTER(c_float)
 
-
 def array_to_image(arr):
     import numpy as np
     # need to return old values to avoid python freeing memory
@@ -209,19 +208,17 @@ def array_to_image(arr):
     im = IMAGE(w, h, c, data)
     return im, arr
 
-
 def classify(net, meta, im):
     out = predict_image(net, im)
     res = []
     for i in range(meta.classes):
         if altNames is None:
-            nameTag = meta.names[i]
+            name_tag = meta.names[i]
         else:
-            nameTag = altNames[i]
-        res.append((nameTag, out[i]))
+            name_tag = altNames[i]
+        res.append((name_tag, out[i]))
     res = sorted(res, key=lambda x: -x[1])
     return res
-
 
 def detect(net, meta, image, thresh=.5, hier_thresh=.5, nms=.45, debug=False):
     """
@@ -247,21 +244,19 @@ def detect(net, meta, image, thresh=.5, hier_thresh=.5, nms=.45, debug=False):
             if dets[j].prob[i] > 0:
                 b = dets[j].bbox
                 if altNames is None:
-                    nameTag = meta.names[i]
+                    name_tag = meta.names[i]
                 else:
-                    nameTag = altNames[i]
-                res.append((nameTag, dets[j].prob[i], (b.x, b.y, b.w, b.h), i))
+                    name_tag = altNames[i]
+                res.append((name_tag, dets[j].prob[i], (b.x, b.y, b.w, b.h), i))
     res = sorted(res, key=lambda x: -x[1])
     free_detections(dets, num)
     return res
-
 
 netMain = None
 metaMain = None
 altNames = None
 
-
-def getObjectDepth(depth, bounds):
+def get_object_depth(depth, bounds):
     area_div = 2
 
     x_vect = []
@@ -288,9 +283,9 @@ def getObjectDepth(depth, bounds):
     return x, y, z
 
 
-def generateColor(metaPath):
+def generate_color(meta_path):
     random.seed(42)
-    f = open(metaPath, 'r')
+    f = open(meta_path, 'r')
     content = f.readlines()
     class_num = int(content[0].split("=")[1])
     color_array = []
@@ -303,10 +298,10 @@ def main(argv):
 
     thresh = 0.25
     darknet_path="../libdarknet/"
-    configPath = darknet_path + "cfg/yolov3-tiny.cfg"
-    weightPath = "yolov3-tiny.weights"
-    metaPath = "coco.data"
-    svoPath = None
+    config_path = darknet_path + "cfg/yolov3-tiny.cfg"
+    weight_path = "yolov3-tiny.weights"
+    meta_path = "coco.data"
+    svo_path = None
 
     help_str = 'darknet_zed.py -c <config> -w <weight> -m <meta> -t <threshold> -s <svo_file>'
     try:
@@ -320,20 +315,20 @@ def main(argv):
             log.info(help_str)
             sys.exit()
         elif opt in ("-c", "--config"):
-            configPath = arg
+            config_path = arg
         elif opt in ("-w", "--weight"):
-            weightPath = arg
+            weight_path = arg
         elif opt in ("-m", "--meta"):
-            metaPath = arg
+            meta_path = arg
         elif opt in ("-t", "--threshold"):
             thresh = float(arg)
         elif opt in ("-s", "--svo_file"):
-            svoPath = arg
+            svo_path = arg
 
     init = sl.InitParameters()
     init.coordinate_units = sl.UNIT.UNIT_METER
-    if svoPath is not None:
-        init.svo_input_filename = svoPath
+    if svo_path is not None:
+        init.svo_input_filename = svo_path
 
     cam = sl.Camera()
     if not cam.is_opened():
@@ -352,28 +347,28 @@ def main(argv):
     # Import the global variables. This lets us instance Darknet once, then just call performDetect() again without instancing again
     global metaMain, netMain, altNames  # pylint: disable=W0603
     assert 0 < thresh < 1, "Threshold should be a float between zero and one (non-inclusive)"
-    if not os.path.exists(configPath):
+    if not os.path.exists(config_path):
         raise ValueError("Invalid config path `" +
-                         os.path.abspath(configPath)+"`")
-    if not os.path.exists(weightPath):
+                         os.path.abspath(config_path)+"`")
+    if not os.path.exists(weight_path):
         raise ValueError("Invalid weight path `" +
-                         os.path.abspath(weightPath)+"`")
-    if not os.path.exists(metaPath):
+                         os.path.abspath(weight_path)+"`")
+    if not os.path.exists(meta_path):
         raise ValueError("Invalid data file path `" +
-                         os.path.abspath(metaPath)+"`")
+                         os.path.abspath(meta_path)+"`")
     if netMain is None:
-        netMain = load_net_custom(configPath.encode(
-            "ascii"), weightPath.encode("ascii"), 0, 1)  # batch size = 1
+        netMain = load_net_custom(config_path.encode(
+            "ascii"), weight_path.encode("ascii"), 0, 1)  # batch size = 1
     if metaMain is None:
-        metaMain = load_meta(metaPath.encode("ascii"))
+        metaMain = load_meta(meta_path.encode("ascii"))
     if altNames is None:
         # In thon 3, the metafile default access craps out on Windows (but not Linux)
         # Read the names file and create a list to feed to detect
         try:
-            with open(metaPath) as metaFH:
-                metaContents = metaFH.read()
+            with open(meta_path) as meta_fh:
+                meta_contents = meta_fh.read()
                 import re
-                match = re.search("names *= *(.*)$", metaContents,
+                match = re.search("names *= *(.*)$", meta_contents,
                                   re.IGNORECASE | re.MULTILINE)
                 if match:
                     result = match.group(1)
@@ -381,15 +376,15 @@ def main(argv):
                     result = None
                 try:
                     if os.path.exists(result):
-                        with open(result) as namesFH:
-                            namesList = namesFH.read().strip().split("\n")
-                            altNames = [x.strip() for x in namesList]
+                        with open(result) as names_fh:
+                            names_list = names_fh.read().strip().split("\n")
+                            altNames = [x.strip() for x in names_list]
                 except TypeError:
                     pass
         except Exception:
             pass
 
-    color_array = generateColor(metaPath)
+    color_array = generate_color(meta_path)
 
     log.info("Running...")
 
@@ -415,19 +410,22 @@ def main(argv):
                 pstring = label+": "+str(np.rint(100 * confidence))+"%"
                 log.info(pstring)
                 bounds = detection[2]
-                yExtent = int(bounds[3])
-                xEntent = int(bounds[2])
+                y_extent = int(bounds[3])
+                x_extent = int(bounds[2])
                 # Coordinates are around the center
-                xCoord = int(bounds[0] - bounds[2]/2)
-                yCoord = int(bounds[1] - bounds[3]/2)
-                boundingBox = [ [xCoord, yCoord], [xCoord, yCoord + yExtent], [xCoord + xEntent, yCoord + yExtent], [xCoord + xEntent, yCoord] ]
+                x_coord = int(bounds[0] - bounds[2]/2)
+                y_coord = int(bounds[1] - bounds[3]/2)
+                boundingBox = [ [x_coord, y_coord], [x_coord, y_coord + y_extent], [x_coord + x_extent, y_coord + y_extent], [x_coord + x_extent, y_coord] ]
                 thickness = 1
-                x, y, z = getObjectDepth(depth, bounds)
+                x, y, z = get_object_depth(depth, bounds)
                 distance = math.sqrt(x * x + y * y + z * z)
                 distance = "{:.2f}".format(distance)
-                cv2.rectangle(image, (xCoord-thickness, yCoord-thickness), (xCoord + xEntent+thickness, yCoord+(18 +thickness*4)), color_array[detection[3]], -1)
-                cv2.putText(image, label + " " +  (str(distance) + " m"), (xCoord+(thickness*4), yCoord+(10 +thickness*4)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 2)
-                cv2.rectangle(image, (xCoord-thickness, yCoord-thickness), (xCoord + xEntent+thickness, yCoord + yExtent+thickness), color_array[detection[3]], int(thickness*2))
+                cv2.rectangle(image, (x_coord - thickness, y_coord - thickness), (x_coord + x_extent + thickness, y_coord + (18 + thickness*4)), color_array[detection[3]], -1)
+                cv2.putText(image, label + " " +  (str(distance) + " m"),
+                            (x_coord + (thickness * 4), y_coord + (10 + thickness * 4)),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+                cv2.rectangle(image, (x_coord - thickness, y_coord - thickness),
+                              (x_coord + x_extent + thickness, y_coord + y_extent + thickness), color_array[detection[3]], int(thickness*2))
 
             cv2.imshow("ZED", image)
             key = cv2.waitKey(5)
