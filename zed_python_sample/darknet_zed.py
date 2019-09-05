@@ -416,6 +416,7 @@ def main(argv):
 
     key = ''
     while key != 113:  # for 'q' key
+        start_time = time.time() # start time of the loop
         err = cam.grab(runtime)
         if err == sl.ERROR_CODE.SUCCESS:
             cam.retrieve_image(mat, sl.VIEW.VIEW_LEFT)
@@ -455,6 +456,7 @@ def main(argv):
 
             cv2.imshow("ZED", image)
             key = cv2.waitKey(5)
+            log.info("FPS: {}".format(1.0 / (time.time() - start_time)))
         else:
             key = cv2.waitKey(5)
     cv2.destroyAllWindows()
