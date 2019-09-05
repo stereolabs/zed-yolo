@@ -11,17 +11,23 @@ Windows Python 2.7 version: https://github.com/AlexeyAB/darknet/blob/fc496d52bf2
 @date: 20180911
 """
 # pylint: disable=R, W0401, W0614, W0703
+import os
+import sys
+import time
+import logging
+import random
+from random import randint
+import math
+import statistics
+import getopt
+from ctypes import *
+import numpy as np
 import cv2
 import pyzed.sl as sl
-from ctypes import *
-import math
-import random
-import os
-import numpy as np
-import statistics
-import sys
-import getopt
-from random import randint
+
+# Get the top-level logger object
+log = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 
 def sample(probs):
@@ -86,7 +92,7 @@ if os.name == "nt":
             if tmp in ["1", "true", "yes", "on"]:
                 raise ValueError("ForceCPU")
             else:
-                print("Flag value '"+tmp+"' not forcing CPU mode")
+                log.info("Flag value '"+tmp+"' not forcing CPU mode")
         except KeyError:
             # We never set the flag
             if 'CUDA_VISIBLE_DEVICES' in envKeys:
@@ -98,8 +104,8 @@ if os.name == "nt":
                     raise ValueError("ForceCPU")
             except NameError:
                 pass
-            # print(os.environ.keys())
-            # print("FORCE_CPU flag undefined, proceeding with GPU")
+            # log.info(os.environ.keys())
+            # log.warning("FORCE_CPU flag undefined, proceeding with GPU")
         if not os.path.exists(winGPUdll):
             raise ValueError("NoDLL")
         lib = CDLL(winGPUdll, RTLD_GLOBAL)
@@ -107,13 +113,13 @@ if os.name == "nt":
         hasGPU = False
         if os.path.exists(winNoGPUdll):
             lib = CDLL(winNoGPUdll, RTLD_GLOBAL)
-            print("Notice: CPU-only mode")
+            log.warning("Notice: CPU-only mode")
         else:
             # Try the other way, in case no_gpu was
             # compile but not renamed
             lib = CDLL(winGPUdll, RTLD_GLOBAL)
-            print("Environment variables indicated a CPU run, but we didn't find `" +
-                  winNoGPUdll+"`. Trying a GPU run anyway.")
+            log.warning("Environment variables indicated a CPU run, but we didn't find `" +
+                        winNoGPUdll+"`. Trying a GPU run anyway.")
 else:
     lib = CDLL("../libdarknet/libdarknet.so", RTLD_GLOBAL)
 lib.network_width.argtypes = [c_void_p]
@@ -209,10 +215,10 @@ def classify(net, meta, im):
     res = []
     for i in range(meta.classes):
         if altNames is None:
-            nameTag = meta.names[i]
+            name_tag = meta.names[i]
         else:
-            nameTag = altNames[i]
-        res.append((nameTag, out[i]))
+            name_tag = altNames[i]
+        res.append((name_tag, out[i]))
     res = sorted(res, key=lambda x: -x[1])
     return res
 
@@ -235,16 +241,16 @@ def detect(net, meta, image, thresh=.5, hier_thresh=.5, nms=.45, debug=False):
         do_nms_sort(dets, num, meta.classes, nms)
     res = []
     if debug:
-        print("about to range")
+        log.debug("about to range")
     for j in range(num):
         for i in range(meta.classes):
             if dets[j].prob[i] > 0:
                 b = dets[j].bbox
                 if altNames is None:
-                    nameTag = meta.names[i]
+                    name_tag = meta.names[i]
                 else:
-                    nameTag = altNames[i]
-                res.append((nameTag, dets[j].prob[i], (b.x, b.y, b.w, b.h), i))
+                    name_tag = altNames[i]
+                res.append((name_tag, dets[j].prob[i], (b.x, b.y, b.w, b.h), i))
     res = sorted(res, key=lambda x: -x[1])
     free_detections(dets, num)
     return res
@@ -255,7 +261,21 @@ metaMain = None
 altNames = None
 
 
-def getObjectDepth(depth, bounds):
+def get_object_depth(depth, bounds):
+    '''
+    Calculates the median x, y, z position of top slice(area_div) of point cloud
+    in camera frame.
+    Arguments:
+        depth: Point cloud data of whole frame.
+        bounds: Bounding box for object in pixels.
+            bounds[0]: x-center
+            bounds[1]: y-center
+            bounds[2]: width of bounding box.
+            bounds[3]: height of bounding box.
+
+    Return:
+        x, y, z: Location of object in meters.
+    '''
     area_div = 2
 
     x_vect = []
@@ -270,22 +290,30 @@ def getObjectDepth(depth, bounds):
                 y_vect.append(depth[i, j, 1])
                 z_vect.append(z)
     try:
-        x = statistics.median(x_vect)
-        y = statistics.median(y_vect)
-        z = statistics.median(z_vect)
+        x_median = statistics.median(x_vect)
+        y_median = statistics.median(y_vect)
+        z_median = statistics.median(z_vect)
     except Exception:
-        x = -1
-        y = -1
-        z = -1
+        x_median = -1
+        y_median = -1
+        z_median = -1
         pass
 
-    return x, y, z
+    return x_median, y_median, z_median
 
 
-def generateColor(metaPath):
+def generate_color(meta_path):
+    '''
+    Generate random colors for the number of classes mentioned in data file.
+    Arguments:
+    meta_path: Path to .data file.
+
+    Return:
+    color_array: RGB color codes for each class.
+    '''
     random.seed(42)
-    f = open(metaPath, 'r')
-    content = f.readlines()
+    with open(meta_path, 'r') as f:
+        content = f.readlines()
     class_num = int(content[0].split("=")[1])
     color_array = []
     for x in range(0, class_num):
@@ -297,44 +325,49 @@ def main(argv):
 
     thresh = 0.25
     darknet_path="../libdarknet/"
-    configPath = darknet_path + "cfg/yolov3-tiny.cfg"
-    weightPath = "yolov3-tiny.weights"
-    metaPath = "coco.data"
-    svoPath = None
+    config_path = darknet_path + "cfg/yolov3-tiny.cfg"
+    weight_path = "yolov3-tiny.weights"
+    meta_path = "coco.data"
+    svo_path = None
+    zed_id = 0
 
-    help_str = 'darknet_zed.py -c <config> -w <weight> -m <meta> -t <threshold> -s <svo_file>'
+    help_str = 'darknet_zed.py -c <config> -w <weight> -m <meta> -t <threshold> -s <svo_file> -z <zed_id>'
     try:
         opts, args = getopt.getopt(
-            argv, "hc:w:m:t:s:", ["config=", "weight=", "meta=", "threshold=", "svo_file="])
+            argv, "hc:w:m:t:s:z:", ["config=", "weight=", "meta=", "threshold=", "svo_file=", "zed_id="])
     except getopt.GetoptError:
-        print (help_str)
+        log.exception(help_str)
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            print (help_str)
+            log.info(help_str)
             sys.exit()
         elif opt in ("-c", "--config"):
-            configPath = arg
+            config_path = arg
         elif opt in ("-w", "--weight"):
-            weightPath = arg
+            weight_path = arg
         elif opt in ("-m", "--meta"):
-            metaPath = arg
+            meta_path = arg
         elif opt in ("-t", "--threshold"):
             thresh = float(arg)
         elif opt in ("-s", "--svo_file"):
-            svoPath = arg
+            svo_path = arg
+        elif opt in ("-z", "--zed_id"):
+            zed_id = int(arg)
 
     init = sl.InitParameters()
     init.coordinate_units = sl.UNIT.UNIT_METER
-    if svoPath is not None:
-        init.svo_input_filename = svoPath
+    if svo_path is not None:
+        init.svo_input_filename = svo_path
 
+    # Launch camera by id
+    init.camera_linux_id = zed_id
     cam = sl.Camera()
     if not cam.is_opened():
-        print("Opening ZED Camera...")
+        log.info("Opening ZED Camera...")
     status = cam.open(init)
     if status != sl.ERROR_CODE.SUCCESS:
-        print(repr(status))
+        log.error(repr(status))
         exit()
 
     runtime = sl.RuntimeParameters()
@@ -343,31 +376,32 @@ def main(argv):
     mat = sl.Mat()
     point_cloud_mat = sl.Mat()
 
-    # Import the global variables. This lets us instance Darknet once, then just call performDetect() again without instancing again
+    # Import the global variables. This lets us instance Darknet once,
+    # then just call performDetect() again without instancing again
     global metaMain, netMain, altNames  # pylint: disable=W0603
     assert 0 < thresh < 1, "Threshold should be a float between zero and one (non-inclusive)"
-    if not os.path.exists(configPath):
+    if not os.path.exists(config_path):
         raise ValueError("Invalid config path `" +
-                         os.path.abspath(configPath)+"`")
-    if not os.path.exists(weightPath):
+                         os.path.abspath(config_path)+"`")
+    if not os.path.exists(weight_path):
         raise ValueError("Invalid weight path `" +
-                         os.path.abspath(weightPath)+"`")
-    if not os.path.exists(metaPath):
+                         os.path.abspath(weight_path)+"`")
+    if not os.path.exists(meta_path):
         raise ValueError("Invalid data file path `" +
-                         os.path.abspath(metaPath)+"`")
+                         os.path.abspath(meta_path)+"`")
     if netMain is None:
-        netMain = load_net_custom(configPath.encode(
-            "ascii"), weightPath.encode("ascii"), 0, 1)  # batch size = 1
+        netMain = load_net_custom(config_path.encode(
+            "ascii"), weight_path.encode("ascii"), 0, 1)  # batch size = 1
     if metaMain is None:
-        metaMain = load_meta(metaPath.encode("ascii"))
+        metaMain = load_meta(meta_path.encode("ascii"))
     if altNames is None:
         # In thon 3, the metafile default access craps out on Windows (but not Linux)
         # Read the names file and create a list to feed to detect
         try:
-            with open(metaPath) as metaFH:
-                metaContents = metaFH.read()
+            with open(meta_path) as meta_fh:
+                meta_contents = meta_fh.read()
                 import re
-                match = re.search("names *= *(.*)$", metaContents,
+                match = re.search("names *= *(.*)$", meta_contents,
                                   re.IGNORECASE | re.MULTILINE)
                 if match:
                     result = match.group(1)
@@ -375,20 +409,21 @@ def main(argv):
                     result = None
                 try:
                     if os.path.exists(result):
-                        with open(result) as namesFH:
-                            namesList = namesFH.read().strip().split("\n")
-                            altNames = [x.strip() for x in namesList]
+                        with open(result) as names_fh:
+                            names_list = names_fh.read().strip().split("\n")
+                            altNames = [x.strip() for x in names_list]
                 except TypeError:
                     pass
         except Exception:
             pass
 
-    color_array = generateColor(metaPath)
+    color_array = generate_color(meta_path)
 
-    print("Running...")
+    log.info("Running...")
 
     key = ''
     while key != 113:  # for 'q' key
+        start_time = time.time() # start time of the loop
         err = cam.grab(runtime)
         if err == sl.ERROR_CODE.SUCCESS:
             cam.retrieve_image(mat, sl.VIEW.VIEW_LEFT)
@@ -401,36 +436,42 @@ def main(argv):
             # Do the detection
             detections = detect(netMain, metaMain, image, thresh)
 
-            print(chr(27) + "[2J"+"**** " +
-                  str(len(detections)) + " Results ****")
+            log.info(chr(27) + "[2J"+"**** " + str(len(detections)) + " Results ****")
             for detection in detections:
                 label = detection[0]
                 confidence = detection[1]
                 pstring = label+": "+str(np.rint(100 * confidence))+"%"
-                print(pstring)
+                log.info(pstring)
                 bounds = detection[2]
-                yExtent = int(bounds[3])
-                xEntent = int(bounds[2])
+                y_extent = int(bounds[3])
+                x_extent = int(bounds[2])
                 # Coordinates are around the center
-                xCoord = int(bounds[0] - bounds[2]/2)
-                yCoord = int(bounds[1] - bounds[3]/2)
-                boundingBox = [ [xCoord, yCoord], [xCoord, yCoord + yExtent], [xCoord + xEntent, yCoord + yExtent], [xCoord + xEntent, yCoord] ]
+                x_coord = int(bounds[0] - bounds[2]/2)
+                y_coord = int(bounds[1] - bounds[3]/2)
+                #boundingBox = [[x_coord, y_coord], [x_coord, y_coord + y_extent], [x_coord + x_extent, y_coord + y_extent], [x_coord + x_extent, y_coord]]
                 thickness = 1
-                x, y, z = getObjectDepth(depth, bounds)
+                x, y, z = get_object_depth(depth, bounds)
                 distance = math.sqrt(x * x + y * y + z * z)
                 distance = "{:.2f}".format(distance)
-                cv2.rectangle(image, (xCoord-thickness, yCoord-thickness), (xCoord + xEntent+thickness, yCoord+(18 +thickness*4)), color_array[detection[3]], -1)
-                cv2.putText(image, label + " " +  (str(distance) + " m"), (xCoord+(thickness*4), yCoord+(10 +thickness*4)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 2)
-                cv2.rectangle(image, (xCoord-thickness, yCoord-thickness), (xCoord + xEntent+thickness, yCoord + yExtent+thickness), color_array[detection[3]], int(thickness*2))
+                cv2.rectangle(image, (x_coord - thickness, y_coord - thickness),
+                              (x_coord + x_extent + thickness, y_coord + (18 + thickness*4)),
+                              color_array[detection[3]], -1)
+                cv2.putText(image, label + " " +  (str(distance) + " m"),
+                            (x_coord + (thickness * 4), y_coord + (10 + thickness * 4)),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+                cv2.rectangle(image, (x_coord - thickness, y_coord - thickness),
+                              (x_coord + x_extent + thickness, y_coord + y_extent + thickness),
+                              color_array[detection[3]], int(thickness*2))
 
             cv2.imshow("ZED", image)
             key = cv2.waitKey(5)
+            log.info("FPS: {}".format(1.0 / (time.time() - start_time)))
         else:
             key = cv2.waitKey(5)
     cv2.destroyAllWindows()
 
     cam.close()
-    print("\nFINISH")
+    log.info("\nFINISH")
 
 
 if __name__ == "__main__":
