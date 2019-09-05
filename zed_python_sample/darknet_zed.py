@@ -257,6 +257,20 @@ metaMain = None
 altNames = None
 
 def get_object_depth(depth, bounds):
+    '''
+    Calculates the median x, y, z position of top slice(area_div) of point cloud
+    in camera frame.
+    Arguments:
+        depth: Point cloud data of whole frame.
+        bounds: Bounding box for object in pixels.
+            bounds[0]: x-center
+            bounds[1]: y-center
+            bounds[2]: width of bounding box.
+            bounds[3]: height of bounding box.
+
+    Return:
+        x, y, z: Location of object in meters.
+    '''
     area_div = 2
 
     x_vect = []
@@ -271,16 +285,16 @@ def get_object_depth(depth, bounds):
                 y_vect.append(depth[i, j, 1])
                 z_vect.append(z)
     try:
-        x = statistics.median(x_vect)
-        y = statistics.median(y_vect)
-        z = statistics.median(z_vect)
+        x_median = statistics.median(x_vect)
+        y_median = statistics.median(y_vect)
+        z_median = statistics.median(z_vect)
     except Exception:
-        x = -1
-        y = -1
-        z = -1
+        x_median = -1
+        y_median = -1
+        z_median = -1
         pass
 
-    return x, y, z
+    return x_median, y_median, z_median
 
 
 def generate_color(meta_path):
