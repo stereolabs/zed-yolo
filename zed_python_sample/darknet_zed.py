@@ -11,18 +11,21 @@ Windows Python 2.7 version: https://github.com/AlexeyAB/darknet/blob/fc496d52bf2
 @date: 20180911
 """
 # pylint: disable=R, W0401, W0614, W0703
-import cv2
-import pyzed.sl as sl
-from ctypes import *
-import math
-import random
 import os
-import numpy as np
-import statistics
 import sys
-import getopt
-from random import randint
+import time
 import logging
+import random
+from random import randint
+import math
+import statistics
+import getopt
+from ctypes import *
+import numpy as np
+import cv2
+import zmq
+import pyzed.sl as sl
+
 # Get the top-level logger object
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
