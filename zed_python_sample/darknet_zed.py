@@ -315,7 +315,6 @@ def generate_color(meta_path):
         color_array.append((randint(0, 255), randint(0, 255), randint(0, 255)))
     return color_array
 
-
 def main(argv):
 
     thresh = 0.25
@@ -324,11 +323,12 @@ def main(argv):
     weight_path = "yolov3-tiny.weights"
     meta_path = "coco.data"
     svo_path = None
+    zed_id = 0
 
-    help_str = 'darknet_zed.py -c <config> -w <weight> -m <meta> -t <threshold> -s <svo_file>'
+    help_str = 'darknet_zed.py -c <config> -w <weight> -m <meta> -t <threshold> -s <svo_file> -z <zed_id>'
     try:
         opts, args = getopt.getopt(
-            argv, "hc:w:m:t:s:", ["config=", "weight=", "meta=", "threshold=", "svo_file="])
+            argv, "hc:w:m:t:s:z:", ["config=", "weight=", "meta=", "threshold=", "svo_file=", "zed_id="])
     except getopt.GetoptError:
         log.exception(help_str)
         sys.exit(2)
@@ -346,12 +346,16 @@ def main(argv):
             thresh = float(arg)
         elif opt in ("-s", "--svo_file"):
             svo_path = arg
+        elif opt in ("-z", "--zed_id"):
+            zed_id = int(arg)
 
     init = sl.InitParameters()
     init.coordinate_units = sl.UNIT.UNIT_METER
     if svo_path is not None:
         init.svo_input_filename = svo_path
 
+    # Launch camera by id
+    init.camera_linux_id = zed_id
     cam = sl.Camera()
     if not cam.is_opened():
         log.info("Opening ZED Camera...")
