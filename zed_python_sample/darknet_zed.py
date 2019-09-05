@@ -22,7 +22,10 @@ import statistics
 import sys
 import getopt
 from random import randint
-
+import logging
+# Get the top-level logger object
+log = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 def sample(probs):
     s = sum(probs)
@@ -86,7 +89,7 @@ if os.name == "nt":
             if tmp in ["1", "true", "yes", "on"]:
                 raise ValueError("ForceCPU")
             else:
-                print("Flag value '"+tmp+"' not forcing CPU mode")
+                log.info("Flag value '"+tmp+"' not forcing CPU mode")
         except KeyError:
             # We never set the flag
             if 'CUDA_VISIBLE_DEVICES' in envKeys:
@@ -98,8 +101,8 @@ if os.name == "nt":
                     raise ValueError("ForceCPU")
             except NameError:
                 pass
-            # print(os.environ.keys())
-            # print("FORCE_CPU flag undefined, proceeding with GPU")
+            # log.info(os.environ.keys())
+            # log.warning("FORCE_CPU flag undefined, proceeding with GPU")
         if not os.path.exists(winGPUdll):
             raise ValueError("NoDLL")
         lib = CDLL(winGPUdll, RTLD_GLOBAL)
@@ -107,13 +110,13 @@ if os.name == "nt":
         hasGPU = False
         if os.path.exists(winNoGPUdll):
             lib = CDLL(winNoGPUdll, RTLD_GLOBAL)
-            print("Notice: CPU-only mode")
+            log.warning("Notice: CPU-only mode")
         else:
             # Try the other way, in case no_gpu was
             # compile but not renamed
             lib = CDLL(winGPUdll, RTLD_GLOBAL)
-            print("Environment variables indicated a CPU run, but we didn't find `" +
-                  winNoGPUdll+"`. Trying a GPU run anyway.")
+            log.warning("Environment variables indicated a CPU run, but we didn't find `" +
+                        winNoGPUdll+"`. Trying a GPU run anyway.")
 else:
     lib = CDLL("../libdarknet/libdarknet.so", RTLD_GLOBAL)
 lib.network_width.argtypes = [c_void_p]
@@ -235,7 +238,7 @@ def detect(net, meta, image, thresh=.5, hier_thresh=.5, nms=.45, debug=False):
         do_nms_sort(dets, num, meta.classes, nms)
     res = []
     if debug:
-        print("about to range")
+        log.debug("about to range")
     for j in range(num):
         for i in range(meta.classes):
             if dets[j].prob[i] > 0:
@@ -307,11 +310,11 @@ def main(argv):
         opts, args = getopt.getopt(
             argv, "hc:w:m:t:s:", ["config=", "weight=", "meta=", "threshold=", "svo_file="])
     except getopt.GetoptError:
-        print (help_str)
+        log.exception(help_str)
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
-            print (help_str)
+            log.info(help_str)
             sys.exit()
         elif opt in ("-c", "--config"):
             configPath = arg
@@ -331,10 +334,10 @@ def main(argv):
 
     cam = sl.Camera()
     if not cam.is_opened():
-        print("Opening ZED Camera...")
+        log.info("Opening ZED Camera...")
     status = cam.open(init)
     if status != sl.ERROR_CODE.SUCCESS:
-        print(repr(status))
+        log.error(repr(status))
         exit()
 
     runtime = sl.RuntimeParameters()
@@ -385,7 +388,7 @@ def main(argv):
 
     color_array = generateColor(metaPath)
 
-    print("Running...")
+    log.info("Running...")
 
     key = ''
     while key != 113:  # for 'q' key
@@ -401,13 +404,13 @@ def main(argv):
             # Do the detection
             detections = detect(netMain, metaMain, image, thresh)
 
-            print(chr(27) + "[2J"+"**** " +
+            log.info(chr(27) + "[2J"+"**** " +
                   str(len(detections)) + " Results ****")
             for detection in detections:
                 label = detection[0]
                 confidence = detection[1]
                 pstring = label+": "+str(np.rint(100 * confidence))+"%"
-                print(pstring)
+                log.info(pstring)
                 bounds = detection[2]
                 yExtent = int(bounds[3])
                 xEntent = int(bounds[2])
@@ -430,7 +433,7 @@ def main(argv):
     cv2.destroyAllWindows()
 
     cam.close()
-    print("\nFINISH")
+    log.info("\nFINISH")
 
 
 if __name__ == "__main__":
