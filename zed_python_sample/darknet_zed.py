@@ -442,7 +442,7 @@ def main(argv):
                 # Coordinates are around the center
                 x_coord = int(bounds[0] - bounds[2]/2)
                 y_coord = int(bounds[1] - bounds[3]/2)
-                boundingBox = [ [x_coord, y_coord], [x_coord, y_coord + y_extent], [x_coord + x_extent, y_coord + y_extent], [x_coord + x_extent, y_coord] ]
+                #boundingBox = [[x_coord, y_coord], [x_coord, y_coord + y_extent], [x_coord + x_extent, y_coord + y_extent], [x_coord + x_extent, y_coord]]
                 thickness = 1
                 x, y, z = get_object_depth(depth, bounds)
                 distance = math.sqrt(x * x + y * y + z * z)
