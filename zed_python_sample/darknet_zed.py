@@ -298,9 +298,17 @@ def get_object_depth(depth, bounds):
 
 
 def generate_color(meta_path):
+    '''
+    Generate random colors for the number of classes mentioned in data file.
+    Arguments:
+    meta_path: Path to .data file.
+
+    Return:
+    color_array: RGB color codes for each class.
+    '''
     random.seed(42)
-    f = open(meta_path, 'r')
-    content = f.readlines()
+    with open(meta_path, 'r') as f:
+        content = f.readlines()
     class_num = int(content[0].split("=")[1])
     color_array = []
     for x in range(0, class_num):
