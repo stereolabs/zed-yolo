@@ -355,13 +355,17 @@ def main(argv):
         elif opt in ("-z", "--zed_id"):
             zed_id = int(arg)
 
-    init = sl.InitParameters()
-    init.coordinate_units = sl.UNIT.UNIT_METER
+    input_type = sl.InputType()
     if svo_path is not None:
-        init.svo_input_filename = svo_path
+        log.info("SVO file : " + svo_path)
+        input_type.set_from_svo_file(svo_path)
+    else:
+        # Launch camera by id
+        input_type.set_from_camera_id(zed_id)
 
-    # Launch camera by id
-    init.camera_linux_id = zed_id
+    init = sl.InitParameters(input_t=input_type)
+    init.coordinate_units = sl.UNIT.METER
+
     cam = sl.Camera()
     if not cam.is_opened():
         log.info("Opening ZED Camera...")
@@ -372,7 +376,7 @@ def main(argv):
 
     runtime = sl.RuntimeParameters()
     # Use STANDARD sensing mode
-    runtime.sensing_mode = sl.SENSING_MODE.SENSING_MODE_STANDARD
+    runtime.sensing_mode = sl.SENSING_MODE.STANDARD
     mat = sl.Mat()
     point_cloud_mat = sl.Mat()
 
@@ -426,11 +430,11 @@ def main(argv):
         start_time = time.time() # start time of the loop
         err = cam.grab(runtime)
         if err == sl.ERROR_CODE.SUCCESS:
-            cam.retrieve_image(mat, sl.VIEW.VIEW_LEFT)
+            cam.retrieve_image(mat, sl.VIEW.LEFT)
             image = mat.get_data()
 
             cam.retrieve_measure(
-                point_cloud_mat, sl.MEASURE.MEASURE_XYZRGBA)
+                point_cloud_mat, sl.MEASURE.XYZRGBA)
             depth = point_cloud_mat.get_data()
 
             # Do the detection
