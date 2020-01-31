@@ -198,7 +198,6 @@ predict_image.restype = POINTER(c_float)
 
 
 def array_to_image(arr):
-    import numpy as np
     # need to return old values to avoid python freeing memory
     arr = arr.transpose(2, 0, 1)
     c = arr.shape[0]
