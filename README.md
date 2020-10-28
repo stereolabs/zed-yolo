@@ -1,6 +1,6 @@
 # Stereolabs ZED - YOLO 3D
 
-This package lets you use [YOLO (v2 or v3)](http://pjreddie.com/darknet/yolo/), the deep learning object detector using the ZED stereo camera in Python 3 or C++.
+This package lets you use [YOLO (v2, v3 or v4)](http://pjreddie.com/darknet/yolo/), the deep learning object detector using the ZED stereo camera in Python 3 or C++.
 
 # [Update : the ZED is now natively supported in YOLO !](https://github.com/AlexeyAB/darknet)
 
@@ -12,7 +12,7 @@ This is a brief explanation on how to enable the ZED camera support.
 
 ### Prerequisites
 
-- Windows 7 64bits or later, Ubuntu 16.04 or 18.04
+- Windows 7 10, Ubuntu LTS, L4T
 - [ZED SDK](https://www.stereolabs.com/developers/) and its dependencies ([CUDA](https://developer.nvidia.com/cuda-downloads))
 - **Darknet** : https://github.com/AlexeyAB/darknet and its dependencies ([cuDNN](https://developer.nvidia.com/cudnn) and OpenCV)
 
@@ -66,14 +66,14 @@ To enable the ZED support in YOLO using the Makefile, simply enable [`GPU` and `
 
 ## 2. Launching the sample
 
-Download the yolo weights, either [yolov3](https://pjreddie.com/media/files/yolov3.weights) or [yolov3-tiny](https://pjreddie.com/media/files/yolov3-tiny.weights) for instance, and put them in the local folder.
+Download the yolo weights, [yolov4](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights) for instance, and put them in the local folder.
 
 
-    ./uselib data/coco.names cfg/yolov3.cfg yolov3.weights zed_camera
+    ./uselib data/coco.names cfg/yolov4.cfg yolov4.weights zed_camera
 
 SVO files are also supported :
 
-    ./uselib data/coco.names cfg/yolov3.cfg yolov3.weights /path/to/svo/file.svo
+    ./uselib data/coco.names cfg/yolov4.cfg yolov4.weights /path/to/svo/file.svo
 
 ## How to use YOLO 3D in Python
 
