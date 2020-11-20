@@ -88,3 +88,7 @@ A DockerFile is provided in the [docker folder](./docker)
 ## Legacy repository
 
 The original YOLO 3D C++ sources are available in the [legacy branch](https://github.com/stereolabs/zed-yolo/tree/legacy)
+
+
+## Support
+If you need assistance go to our Community site at https://community.stereolabs.com/
