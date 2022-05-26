@@ -204,6 +204,7 @@ int main(int argc, char** argv) {
     std::vector<cv::Mat> detections;
 
     exit_flag = false;
+    int frame_count = 0;
 
     while (!exit_flag) {
         if (zed.grab() == sl::ERROR_CODE::SUCCESS) {
@@ -219,6 +220,8 @@ int main(int argc, char** argv) {
             cv::dnn::blobFromImage(frame, blob, 0.00392, cv::Size(INFERENCE_SIZE, INFERENCE_SIZE), cv::Scalar(), true, false, CV_32F);
             net.setInput(blob);
             net.forward(detections, output_names);
+            
+            std::cout << "******Frame No : " << frame_count << std::endl;
 
             std::vector<int> indices[NUM_CLASSES];
             std::vector<cv::Rect> boxes[NUM_CLASSES];
@@ -287,6 +290,8 @@ int main(int argc, char** argv) {
                     auto label_bg_sz = cv::getTextSize(label.c_str(), cv::FONT_HERSHEY_COMPLEX_SMALL, 1, 1, &baseline);
                     cv::rectangle(frame, cv::Point(rect.x, rect.y - label_bg_sz.height - baseline - 10), cv::Point(rect.x +  + label_bg_sz.width, rect.y+20), color, cv::FILLED);
                     cv::putText(frame, label.c_str(), cv::Point(rect.x, rect.y - baseline - 5), cv::FONT_HERSHEY_COMPLEX_SMALL, 1, cv::Scalar(0, 0, 0));
+                    
+                    std::cout << label.c_str() << std::endl;
 
                     std::string dist = std::to_string(distance/1000);
                     // cv::putText(frame, dist, cv::Point(rect.x, rect.y - baseline - 5), cv::FONT_HERSHEY_COMPLEX_SMALL, 1, cv::Scalar(0, 0, 0));
@@ -299,6 +304,7 @@ int main(int argc, char** argv) {
 
             cv::imshow("Objects", frame);
             // cv::waitKey(10);
+            frame_count++;
 
             int key = cv::waitKey(10); 
             if (key == 'p') while (true) if (cv::waitKey(100) == 'p') break;
