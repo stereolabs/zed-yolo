@@ -40,8 +40,7 @@ def main() :
     image_zed = sl.Mat(image_size.width, image_size.height, sl.MAT_TYPE.U8_C4)
     depth_image_zed = sl.Mat(image_size.width, image_size.height, sl.MAT_TYPE.U8_C4)
     point_cloud = sl.Mat()
-    #=======================================  yolov4  video test et ============================================           
-    #======== Yolov4 Tiny ağırlıklarını yüklemektedir ===================
+
     weightsPath_tiny = "yolov4.weights"
     configPath_tiny = "yolov4.cfg"
 

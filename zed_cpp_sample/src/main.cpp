@@ -7,7 +7,7 @@
 #include <iomanip>
 #include <chrono>
 #include <atomic>
-#include <mutex>              // std::mutex, std::unique_lock
+#include <mutex>              
 #include <condition_variable>
 
 #include <opencv2/core.hpp>
@@ -145,8 +145,6 @@ int main(int argc, char** argv) {
         }
     }
 
-    // auto class_names = objects_names_from_file(names_file);
-
     /// Opening the ZED camera before the model deserialization to avoid cuda context issue
     sl::Camera zed;
     sl::InitParameters init_parameters;
@@ -185,9 +183,7 @@ int main(int argc, char** argv) {
     // sl::Resolution image_size = zed.getCameraInformation().camera_resolution;
     sl::Resolution pc_resolution(std::min((int) camera_config.resolution.width, 720), std::min((int) camera_config.resolution.height, 404));
     auto camera_info = zed.getCameraInformation(pc_resolution).camera_configuration;
-    // Create OpenGL Viewer
-    // GLViewer viewer;
-    // viewer.init(argc, argv, camera_info.calibration_parameters.left_cam, true);
+
     sl::Mat left_sl, depth_image, point_cloud;
 
     sl::ObjectDetectionRuntimeParameters objectTracker_parameters_rt;
@@ -310,10 +306,7 @@ int main(int argc, char** argv) {
 
             // Retrieve the tracked objects, with 2D and 3D attributes
             zed.retrieveObjects(objects, objectTracker_parameters_rt);
-            // GL Viewer
-            // zed.retrieveMeasure(point_cloud, sl::MEASURE::XYZRGBA, sl::MEM::GPU, pc_resolution);
-            // zed.getPosition(cam_w_pose, sl::REFERENCE_FRAME::WORLD);
-            // viewer.updateData(point_cloud, objects.object_list, cam_w_pose.pose_data);
+
         }
     }
     return 0;
