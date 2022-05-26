@@ -5,13 +5,13 @@ This package lets you use YOLO the deep learning object detector using the ZED s
 The left image will be used to display the detected objects alongside the distance of each, using the ZED Depth.
 
 <p align="center">
-  <img src="preview.png" width=676 height=450>
+  <img src="../preview.png" width=676 height=450>
 </p>
 
 ## Prerequisites
 
-- Windows 10, Ubuntu LTS
-- [ZED SDK 3](https://www.stereolabs.com/developers/) and its dependencies ([CUDA](https://developer.nvidia.com/cuda-downloads))
+- Windows 7 64bits or later, Ubuntu 16.04
+- [ZED SDK](https://www.stereolabs.com/developers/) and its dependencies ([CUDA](https://developer.nvidia.com/cuda-downloads))
 - [ZED Python 3 wrapper](https://github.com/stereolabs/zed-python)
 
 ## Setup ZED Python
