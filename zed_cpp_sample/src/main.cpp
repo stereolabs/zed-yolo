@@ -25,12 +25,11 @@
 
 #include "GLViewer.hpp"
 
-constexpr float CONFIDENCE_THRESHOLD = 0;
-constexpr float NMS_THRESHOLD = 0.6;
+constexpr float CONFIDENCE_THRESHOLD = 0.6;
+constexpr float NMS_THRESHOLD = 0.4;
 constexpr int NUM_CLASSES = 80;
 constexpr int INFERENCE_SIZE = 416;
 
-// colors for bounding boxes
 const cv::Scalar colors[] = {
     {0, 255, 255},
     {255, 255, 0},
@@ -150,7 +149,7 @@ int main(int argc, char** argv) {
     sl::InitParameters init_parameters;
     init_parameters.camera_resolution = sl::RESOLUTION::HD1080;
     init_parameters.depth_mode = sl::DEPTH_MODE::ULTRA;
-    init_parameters.coordinate_system = sl::COORDINATE_SYSTEM::RIGHT_HANDED_Y_UP; // OpenGL's coordinate system is right_handed
+    init_parameters.coordinate_system = sl::COORDINATE_SYSTEM::RIGHT_HANDED_Y_UP; 
 
     if (argc >= 2) {
         std::string zed_opt = argv[1];
@@ -190,9 +189,7 @@ int main(int argc, char** argv) {
     sl::Objects objects;
     sl::Pose cam_w_pose;
     cam_w_pose.pose_data.setIdentity();
-    // ---------
 
-    // Weight can be downloaded from https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights
     auto net = cv::dnn::readNetFromDarknet(cfg_file, weights_file);
     net.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
     net.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
@@ -268,8 +265,7 @@ int main(int argc, char** argv) {
                     tmp.probability = rect_score;
                     tmp.label = c;
                     tmp.bounding_box_2d = cvt(rect);
-                    tmp.is_grounded = (c == 0); // Only the first class (person) is grounded, that is moving on the floor plane
-                    // others are tracked in full 3D space
+                    tmp.is_grounded = (c == 0); 
                     objects_in.push_back(tmp);
                     //--
 
@@ -280,39 +276,38 @@ int main(int argc, char** argv) {
 
                     point_cloud.getValue(circ.x, circ.y, &point_cloud_value);
                     float distance = sqrt(point_cloud_value.x*point_cloud_value.x + point_cloud_value.y*point_cloud_value.y + point_cloud_value.z*point_cloud_value.z);
-                    // printf("Distance to Camera at (%d, %d): %f mm\n", circ.x, circ.y, distance);
 
-                    std::ostringstream label_ss;
+                    std::ostringstream label_ss, dist_ss;
                     label_ss << class_names[c] << ": " << std::fixed << std::setprecision(2) << scores[c][idx];
                     auto label = label_ss.str();
 
                     int baseline;
                     auto label_bg_sz = cv::getTextSize(label.c_str(), cv::FONT_HERSHEY_COMPLEX_SMALL, 1, 1, &baseline);
-                    cv::rectangle(frame, cv::Point(rect.x, rect.y - label_bg_sz.height - baseline - 10), cv::Point(rect.x +  + label_bg_sz.width, rect.y+20), color, cv::FILLED);
+                    cv::rectangle(frame, cv::Point(rect.x, rect.y - label_bg_sz.height - baseline - 10), cv::Point(rect.x  + label_bg_sz.width+ 25, rect.y+20), color, cv::FILLED);
                     cv::putText(frame, label.c_str(), cv::Point(rect.x, rect.y - baseline - 5), cv::FONT_HERSHEY_COMPLEX_SMALL, 1, cv::Scalar(0, 0, 0));
-                    
-                    std::cout << label.c_str() << std::endl;
 
                     std::string dist = std::to_string(distance/1000);
-                    // cv::putText(frame, dist, cv::Point(rect.x, rect.y - baseline - 5), cv::FONT_HERSHEY_COMPLEX_SMALL, 1, cv::Scalar(0, 0, 0));
-                    // cv::rectangle(frame, cv::Point(rect.x, rect.y - label_bg_sz.height - baseline - 10), cv::Point(rect.x + label_bg_sz.width, rect.y), color, cv::FILLED);
-                    cv::putText(frame, dist, cv::Point(rect.x, rect.y + baseline + 10), cv::FONT_HERSHEY_COMPLEX_SMALL, 1, cv::Scalar(0, 0, 0));
+
+                    dist_ss << "Distance: " << std::fixed << std::setprecision(2) << distance/1000;
+                    auto dist_label = dist_ss.str();
+
+                    std::cout << label.c_str() << "  " << dist_label.c_str() << " m" << std::endl;
+
+                    cv::putText(frame, dist_label, cv::Point(rect.x, rect.y + baseline + 10), cv::FONT_HERSHEY_COMPLEX_SMALL, 1, cv::Scalar(0, 0, 0));
                 }
             }
             // Send the custom detected boxes to the ZED
             zed.ingestCustomBoxObjects(objects_in);
 
             cv::imshow("Objects", frame);
-            // cv::waitKey(10);
+
             frame_count++;
 
             int key = cv::waitKey(10); 
-            if (key == 'p') while (true) if (cv::waitKey(100) == 'p') break;
-            if (key == 27 || key == 'q') exit_flag = true;
+            if (key == 'q') exit_flag = true;
 
             // Retrieve the tracked objects, with 2D and 3D attributes
             zed.retrieveObjects(objects, objectTracker_parameters_rt);
-
         }
     }
     return 0;
