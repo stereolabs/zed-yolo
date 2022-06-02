@@ -4,9 +4,7 @@ import pyzed.sl as sl
 import cv2
 import math
 
-
 def main() :
-
     # Create a ZED camera object
     zed = sl.Camera()
 
@@ -22,10 +20,9 @@ def main() :
     # Open the camera
     err = zed.open(init)
     if err != sl.ERROR_CODE.SUCCESS :
-        print(repr(err))
+        # print(repr(err))
         zed.close()
         exit(1)
-
   
     # Set runtime parameters after opening the camera
     runtime = sl.RuntimeParameters()
@@ -33,8 +30,8 @@ def main() :
 
     # Prepare new image size to retrieve half-resolution images
     image_size = zed.get_camera_information().camera_resolution
-    image_size.width = image_size.width /2
-    image_size.height = image_size.height /2
+    image_size.width = image_size.width 
+    image_size.height = image_size.height 
 
     # Declare your sl.Mat matrices
     image_zed = sl.Mat(image_size.width, image_size.height, sl.MAT_TYPE.U8_C4)
@@ -55,7 +52,7 @@ def main() :
         model.setInputParams(size=(416, 416), scale=1/255, swapRB=True)
         image_test = cv2.cvtColor(pred_image, cv2.COLOR_RGBA2RGB)
         image = image_test.copy()
-        print('image',image.shape)
+        # print('image',image.shape)
         confThreshold= 0.6
         nmsThreshold = 0.4
         classes, confidences, boxes = model.detect(image, confThreshold, nmsThreshold)
@@ -64,90 +61,18 @@ def main() :
         
         
     key = ' '
-    LABELS = [
-    'person',
-    'bicycle',
-    'car',
-    'motorbike',
-    'aeroplane',
-    'bus',
-    'train',
-    'truck',
-    'boat',
-    'traffic light',
-    'fire hydrant',
-    'stop sign',
-    'parking meter',
-    'bench',
-    'bird',
-    'cat',
-    'dog',
-    'horse',
-    'sheep',
-    'cow',
-    'elephant',
-    'bear',
-    'zebra',
-    'giraffe',
-    'backpack',
-    'umbrella',
-    'handbag',
-    'tie',
-    'suitcase',
-    'frisbee',
-    'skis',
-    'snowboard',
-    'sports ball',
-    'kite',
-    'baseball bat',
-    'baseball glove',
-    'skateboard',
-    'surfboard',
-    'tennis racket',
-    'bottle',
-    'wine glass',
-    'cup',
-    'fork',
-    'knife',
-    'spoon',
-    'bowl',
-    'banana',
-    'apple',
-    'sandwich',
-    'orange',
-    'broccoli',
-    'carrot',
-    'hot dog',
-    'pizza',
-    'donut',
-    'cake',
-    'chair',
-    'sofa',
-    'pottedplant',
-    'bed',
-    'diningtable',
-    'toilet',
-    'tvmonitor',
-    'laptop',
-    'mouse',
-    'remote',
-    'keyboard',
-    'cell phone',
-    'microwave',
-    'oven',
-    'toaster',
-    'sink',
-    'refrigerator',
-    'book',
-    'clock',
-    'vase',
-    'scissors',
-    'teddy bear',
-    'hair drier',
-    'toothbrush',
-]
-    COLORS = [[0, 0, 255]]
-    while key != 113 :
+    LABELS = []
+    with open('coco.names', 'r') as f:
+        LABELS = [cname.strip() for cname in f.readlines()]
+
+    COLORS = [[0, 0, 255], [30, 255, 255], [0,255,0]]
+
+    frame_count = 0
+
+    exit_flag = True
+
+    while(exit_flag == True):
+        print("FRAME ", frame_count)
         err = zed.grab(runtime)
         if err == sl.ERROR_CODE.SUCCESS :
             # Retrieve the left image, depth image in the half-resolution
@@ -155,9 +80,6 @@ def main() :
             zed.retrieve_image(depth_image_zed, sl.VIEW.DEPTH, sl.MEM.CPU, image_size)
             # Retrieve the RGBA point cloud in half resolution
             zed.retrieve_measure(point_cloud, sl.MEASURE.XYZRGBA, sl.MEM.CPU, image_size)
-            
-            # Get and print distance value in mm at the center of the image
-            # We measure the distance camera - object using Euclidean distance
             
             # To recover data from sl.Mat to use it with opencv, use the get_data() method
             # It returns a numpy array that can be used as a matrix with opencv
@@ -171,35 +93,30 @@ def main() :
                 
                 x = int(left + width/2)
                 y = int(top + height/2)
-                color = COLORS[0]
-                img =cv2.rectangle(image_ocv,start_pooint,end_point,color,3)
-                img = cv2.circle(img,(x,y),5,[0,0,255],5)
+
+                img =cv2.rectangle(image_ocv,start_pooint,end_point,COLORS[1],2)
+                img = cv2.circle(img,(x,y),5,COLORS[1],5)
                 text = f'{LABELS[cl]}: {score:0.2f}'
-                cv2.putText(img,text,(int(left),int(top-7)),cv2.FONT_ITALIC,1,COLORS[0],2 )
+                cv2.putText(img,text,(int(left),int(top-7)),cv2.FONT_HERSHEY_COMPLEX,1,COLORS[0],2 )
                 
                 x = round(x)
                 y = round(y)
                 err, point_cloud_value = point_cloud.get_value(x, y)
-                distance = math.sqrt(point_cloud_value[0] * point_cloud_value[0] +
-                                    point_cloud_value[1] * point_cloud_value[1] +
-                                    point_cloud_value[2] * point_cloud_value[2])
+                distance = math.sqrt(point_cloud_value[0] * point_cloud_value[0] + point_cloud_value[1] * point_cloud_value[1] + point_cloud_value[2] * point_cloud_value[2])
 
-                print("Distance to Camera at (class : {0}, score : {1:0.2f}): distance : {2:0.2f} mm".format(LABELS[cl], score, distance), end="\r")
-                cv2.putText(img,"Distance: "+str(round(distance/1000,2))+'m',(int(int(left+width)-180),int(int(top+height)+30)),cv2.FONT_HERSHEY_COMPLEX,1,(0,255,0),1)
+                print("{0} : {1:0.2f} , Distance : {2:0.2f} m".format(LABELS[cl], score, distance/1000))
+
+                cv2.putText(img,"Distance: "+str(round(distance/1000,2))+'m',(int(int(left)),int(int(top)+30)),cv2.FONT_HERSHEY_COMPLEX,1,COLORS[2],2)
                 
                 cv2.imshow("Image", img)
-                    
-            
-            #cv2.imshow("Image", image_ocv)
-            #cv2.imshow("Depth", depth_image_ocv)
-            
-            key = cv2.waitKey(1)
 
+            frame_count = frame_count + 1
+            
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                exit_flag = False
 
     cv2.destroyAllWindows()
     zed.close()
-
-    print("\nFINISH")
 
 if __name__ == "__main__":
     main()
