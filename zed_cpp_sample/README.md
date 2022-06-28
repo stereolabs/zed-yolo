@@ -2,28 +2,21 @@
 
 This package lets you use YOLO the deep learning object detector using the ZED stereo camera and the ZED SDK C++.
 
-The left image will be used to display the detected objects alongside the distance of each, using the ZED Depth.
+The below image will be used to display the detected objects alongside the distance of each, using the ZED Depth.
 
 <p align="center">
-  <img src="cpp_zed_yolo_output.png" width=80%>
+  <img src="cpp_zed_yolo_output.png" width=100%>
 </p>
 
 ## Prerequisites
 
-- Ubuntu 16.04
+- Ubuntu 20.04
 - [ZED SDK](https://www.stereolabs.com/developers/) and its dependencies ([CUDA](https://developer.nvidia.com/cuda-downloads))
 - OpenCV
 
 ## Compile Darknet
 
 We will use a fork of darknet from @AlexeyAB : https://github.com/AlexeyAB/darknet
-
-- It is already present in the folder libdarknet
-
-- Simply call make in the folder
-
-        cd libdarknet
-        make -j4
 
 - For more information regarding the compilation instructions, check the darknet Readme [here](../libdarknet/README.md)
 
