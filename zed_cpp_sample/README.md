@@ -5,7 +5,7 @@ This package lets you use YOLO the deep learning object detector using the ZED s
 The left image will be used to display the detected objects alongside the distance of each, using the ZED Depth.
 
 <p align="center">
-  <img src="../preview.png" width=676 height=450>
+  <img src="cpp_zed_yolo_output.png" width=676 height=450>
 </p>
 
 ## Prerequisites
