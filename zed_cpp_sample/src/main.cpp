@@ -125,7 +125,7 @@ std::vector<sl::uint2> cvt(const cv::Rect &bbox_in){
     return bbox_out;
 }
 
-
+// Main function
 int main(int argc, char** argv) {
     std::string names_file = "coco.names";
     std::string cfg_file = "yolov4.cfg";
@@ -191,10 +191,15 @@ int main(int argc, char** argv) {
     cam_w_pose.pose_data.setIdentity();
 
     auto net = cv::dnn::readNetFromDarknet(cfg_file, weights_file);
+
+    //To run the code with CUDA GPU
     net.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
     net.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
+
+    // To run the code with CPU
     // net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
     // net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
+    
     auto output_names = net.getUnconnectedOutLayersNames();
 
     cv::Mat frame, blob;
