@@ -1,6 +1,7 @@
 # Stereolabs ZED - YOLO 3D in Python
 
 This package lets you use YOLO the deep learning object detector using the ZED stereo camera in Python 3.
+NOTE : This package works with YOLO V2, YOLO V3, YOLO V4
 
 The below image will be used to display the detected objects alongside the distance of each, using the ZED Depth.
 
@@ -13,6 +14,7 @@ The below image will be used to display the detected objects alongside the dista
 - Windows 7 64bits or later, Ubuntu 20.04
 - [ZED SDK](https://www.stereolabs.com/developers/) and its dependencies ([CUDA](https://developer.nvidia.com/cuda-downloads))
 - [ZED Python 3 wrapper](https://github.com/stereolabs/zed-python)
+- [OpenCV](https://docs.opencv.org/4.x/da/df6/tutorial_py_table_of_contents_setup.html) built with CUDA and [cuDNN](https://developer.nvidia.com/cudnn)
 
 ## Setup ZED Python
 
