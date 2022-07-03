@@ -5,6 +5,7 @@ import cv2
 import math
 
 def main() :
+
     # Create a ZED camera object
     zed = sl.Camera()
 
@@ -38,7 +39,7 @@ def main() :
     image_zed = sl.Mat(image_size.width, image_size.height, sl.MAT_TYPE.U8_C4)
     depth_image_zed = sl.Mat(image_size.width, image_size.height, sl.MAT_TYPE.U8_C4)
     point_cloud = sl.Mat()
-    #=======================================  yolov4  video test et ============================================           
+    
     weightsPath_tiny = "yolov4.weights"
     configPath_tiny = "yolov4.cfg"
 
@@ -77,9 +78,6 @@ def main() :
             # Retrieve the RGBA point cloud in half resolution
             zed.retrieve_measure(point_cloud, sl.MEASURE.XYZRGBA, sl.MEM.CPU, image_size)
             
-            # Get and print distance value in mm at the center of the image
-            # We measure the distance camera - object using Euclidean distance
-            
             # To recover data from sl.Mat to use it with opencv, use the get_data() method
             # It returns a numpy array that can be used as a matrix with opencv
             image_ocv = image_zed.get_data()
@@ -117,7 +115,3 @@ def main() :
 
 if __name__ == "__main__":
     main()
-
-
-
-
