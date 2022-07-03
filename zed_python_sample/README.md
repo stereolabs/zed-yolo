@@ -42,6 +42,10 @@ The input parameters can be changed using the command line :
 For instance :
 
         python3 zed_yolo.py -c yolov4.cfg -w yolov4.weights -m coco.names -z 1
+        
+For running with custom weights :
+
+        python3 zed_yolo.py -c yolov4-custom.cfg -w yolov4-custom.weights -m obj.names -z 1
 
 To display the help :
 
