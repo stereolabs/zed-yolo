@@ -1,6 +1,8 @@
 # Stereolabs ZED - YOLO 3D in C++
 
-This package lets you use YOLO the deep learning object detector using the ZED stereo camera and the ZED SDK C++.
+This package lets you use YOLO, the deep learning object detector using the ZED stereo camera and the ZED SDK C++.
+
+**NOTE** : This package works with YOLO V2, YOLO V3, YOLO V4
 
 The below image will be used to display the detected objects alongside the distance of each, using the ZED Depth.
 
@@ -12,13 +14,7 @@ The below image will be used to display the detected objects alongside the dista
 
 - Ubuntu 20.04
 - [ZED SDK](https://www.stereolabs.com/developers/) and its dependencies ([CUDA](https://developer.nvidia.com/cuda-downloads))
-- OpenCV
-
-## Compile Darknet
-
-We will use a fork of darknet from @AlexeyAB : https://github.com/AlexeyAB/darknet
-
-- For more information regarding the compilation instructions, check the darknet Readme [here](../libdarknet/README.md)
+- [OpenCV](https://docs.opencv.org/4.x/da/df6/tutorial_py_table_of_contents_setup.html) built with CUDA and [cuDNN](https://developer.nvidia.com/cudnn)
 
 
 ## Build and Run the application
@@ -38,20 +34,24 @@ Create a build directory and generate a solution from the CMake
 
 ### Setup the application
 
-- Download the model file, for instance Yolov3 tiny
+- Download the model file, for instance Yolov4
 
-        wget https://pjreddie.com/media/files/yolov3-tiny.weights
+        wget https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights
 
 ### Run the sample
 
 To launch the ZED with YOLO simply run the sample, be careful to the path, the folder has to match to find the configuration files and weights file :
 
-        ./darknet_zed ../../libdarknet/data/coco.names ../../libdarknet/cfg/yolov3-tiny.cfg yolov3-tiny.weights
+        ./build/yolo_zed 
 
 The input parameters can be changed using the command line :
 
-        ./darknet_zed <meta> <config> <weight> <meta> <svo_file> <threshold>
+        ./build/yolo_zed <meta> <config> <weight> <svo_file> <threshold>
 
 For instance :
 
-        ./darknet_zed data/coco.names cfg/yolov3.cfg yolov3.weights mySVOFile.svo 0.2
+        ./build/yolo_zed coco.names yolov4.cfg yolov4.weights mySVOFile.svo 0.2
+        
+For running with custom weights :
+
+        ./build/yolo_zed obj.names yolov4-custom.cfg yolov4-custom.weights mySVOFile.svo 0.2
