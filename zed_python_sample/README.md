@@ -21,41 +21,28 @@ The below image will be used to display the detected objects alongside the dista
 
 Download and install the [ZED Python wrapper](https://github.com/stereolabs/zed-python) following the instructions, to make sure everything works you sould try a [sample](https://github.com/stereolabs/zed-python/tree/master/examples).
 
-## Setup Darknet
-
-We will use a fork of darknet from @AlexeyAB : https://github.com/AlexeyAB/darknet
-
-- It is already present in the folder libdarknet
-
-- Simply call make in the folder
-
-        cd libdarknet
-        make -j4
-
-- For more information regarding the compilation instructions, check the darknet Readme [here](../libdarknet/README.md)
 
 ## Setup the application
 
-- Download the model file, for instance Yolov3 tiny
+- Download the model file, for instance Yolov4
 
-        wget https://pjreddie.com/media/files/yolov3-tiny.weights
+        wget https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights
 
 ## Run the application
 
 
 To launch the ZED with YOLO simply run the script :
 
-        python3 darknet_zed.py
-
+        python3 zed_yolo.py
 
 The input parameters can be changed using the command line :
 
-        python3 darknet_zed.py -c <config> -w <weight> -m <meta> -t <threshold> -s <svo_file>
+        python3 zed_yolo.py -c <config> -w <weight> -m <meta> -s <svo_file> -z <zed_id>
 
 For instance :
 
-        python3 darknet_zed.py -c cfg/yolov3.cfg -w yolov3.weights -m cfg/coco.data -t 0.5
+        python3 zed_yolo.py -c yolov4.cfg -w yolov4.weights -m coco.names -z 1
 
 To display the help :
 
-        python3 darknet_zed.py -h
+        python3 zed_yolo.py -h
