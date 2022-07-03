@@ -3,20 +3,70 @@ import numpy as np
 import pyzed.sl as sl
 import cv2
 import math
+import getopt
+import os
+import sys
+import time
+import logging
 
-def main() :
 
-    # Create a ZED camera object
-    zed = sl.Camera()
+log = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
+def main(argv) :
+
+    config_path = "yolov4.cfg"
+    weight_path = "yolov4.weights"
+    meta_path = "coco.names"
+    svo_path = None
+    zed_id = 0
+
+    help_str = 'zed_yolo.py -c <config> -w <weight> -m <meta> -s <svo_file> -z <zed_id>'
+    try:
+        opts, args = getopt.getopt(
+            argv, "hc:w:m:s:z:", ["config=", "weight=", "meta=", "svo_file=", "zed_id="])
+    except getopt.GetoptError:
+        log.exception(help_str)
+        sys.exit(2)
+
+    for opt, arg in opts:
+        if opt == '-h':
+            log.info(help_str)
+            sys.exit()
+        elif opt in ("-c", "--config"):
+            config_path = arg
+        elif opt in ("-w", "--weight"):
+            weight_path = arg
+        elif opt in ("-m", "--meta"):
+            meta_path = arg
+        elif opt in ("-s", "--svo_file"):
+            svo_path = arg
+        elif opt in ("-z", "--zed_id"):
+            zed_id = int(arg)
 
     # Set configuration parameters
     input_type = sl.InputType()
-    if len(sys.argv) >= 2 :
-        input_type.set_from_svo_file(sys.argv[1])
+
+    if svo_path is not None:
+        log.info("SVO file : " + svo_path)
+        input_type.set_from_svo_file(svo_path)
+    else:
+        # Launch camera by id
+        input_type.set_from_camera_id(zed_id)
+
     init = sl.InitParameters(input_t=input_type)
     init.camera_resolution = sl.RESOLUTION.HD1080
     init.depth_mode = sl.DEPTH_MODE.PERFORMANCE
     init.coordinate_units = sl.UNIT.MILLIMETER
+
+    # Create a ZED camera object
+    zed = sl.Camera()
+    if not zed.is_opened():
+        log.info("Opening ZED Camera...")
+    status = zed.open(init)
+    if status != sl.ERROR_CODE.SUCCESS:
+        log.error(repr(status))
+        exit()
 
     # Open the camera
     err = zed.open(init)
@@ -32,23 +82,19 @@ def main() :
 
     # Prepare new image size to retrieve half-resolution images
     image_size = zed.get_camera_information().camera_resolution
-    image_size.width = image_size.width /2
-    image_size.height = image_size.height /2
+    image_size.width = image_size.width 
+    image_size.height = image_size.height 
 
     # Declare your sl.Mat matrices
     image_zed = sl.Mat(image_size.width, image_size.height, sl.MAT_TYPE.U8_C4)
     depth_image_zed = sl.Mat(image_size.width, image_size.height, sl.MAT_TYPE.U8_C4)
     point_cloud = sl.Mat()
-    
-    weightsPath_tiny = "yolov4.weights"
-    configPath_tiny = "yolov4.cfg"
 
-    tiny_net = cv2.dnn.readNetFromDarknet(configPath_tiny, weightsPath_tiny)
-    tiny_net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
-    tiny_net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA_FP16)
-    model = cv2.dnn_DetectionModel(tiny_net)
+    net = cv2.dnn.readNetFromDarknet(config_path, weight_path)
+    net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+    net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA_FP16)
+    model = cv2.dnn_DetectionModel(net)
     
- 
     
     def YOLOv4_video(pred_image):
         model.setInputParams(size=(416, 416), scale=1/255, swapRB=True)
@@ -64,7 +110,7 @@ def main() :
         
     key = ' '
     LABELS = []
-    with open('coco.names', 'r') as f:
+    with open(meta_path, 'r') as f:
         LABELS = [cname.strip() for cname in f.readlines()]
 
 
@@ -99,9 +145,7 @@ def main() :
                 x = round(x)
                 y = round(y)
                 err, point_cloud_value = point_cloud.get_value(x, y)
-                distance = math.sqrt(point_cloud_value[0] * point_cloud_value[0] +
-                                    point_cloud_value[1] * point_cloud_value[1] +
-                                    point_cloud_value[2] * point_cloud_value[2])
+                distance = math.sqrt(point_cloud_value[0] * point_cloud_value[0] + point_cloud_value[1] * point_cloud_value[1] +  point_cloud_value[2] * point_cloud_value[2])
 
                 print("Distance to Camera at (class : {0}, score : {1:0.2f}): distance : {2:0.2f} mm".format(LABELS[cl], score, distance), end="\r")
                 cv2.putText(img,"Distance: "+str(round(distance/1000,2))+'m',(int(int(left+width)-180),int(int(top+height)+30)),cv2.FONT_HERSHEY_COMPLEX,1,(0,255,0),1)
@@ -114,4 +158,4 @@ def main() :
     zed.close()
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
