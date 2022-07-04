@@ -130,6 +130,15 @@ int main(int argc, char** argv) {
     std::string names_file = "coco.names";
     std::string cfg_file = "yolov4.cfg";
     std::string weights_file = "yolov4.weights";
+    std::string filename;
+    
+    if (argc > 3) { //voc.names yolo-voc.cfg yolo-voc.weights svo_file.svo
+        names_file = argv[1];
+        cfg_file = argv[2];
+        weights_file = argv[3];
+        if (argc > 4)
+            filename = argv[4];
+    } else if (argc > 1) filename = argv[1];
 
     std::vector<std::string> class_names;
     {
@@ -150,12 +159,8 @@ int main(int argc, char** argv) {
     init_parameters.camera_resolution = sl::RESOLUTION::HD1080;
     init_parameters.depth_mode = sl::DEPTH_MODE::ULTRA;
     init_parameters.coordinate_system = sl::COORDINATE_SYSTEM::RIGHT_HANDED_Y_UP; 
-
-    if (argc >= 2) {
-        std::string zed_opt = argv[1];
-        if (zed_opt.find(".svo") != std::string::npos)
-            init_parameters.input.setFromSVOFile(zed_opt.c_str());
-    }
+    
+    if (!filename.empty()) init_parameters.svo_input_filename.set(filename.c_str());
 
     // Open the camera
     auto returned_state = zed.open(init_parameters);
