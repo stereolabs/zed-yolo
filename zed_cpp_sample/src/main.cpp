@@ -160,7 +160,7 @@ int main(int argc, char** argv) {
     init_parameters.depth_mode = sl::DEPTH_MODE::ULTRA;
     init_parameters.coordinate_system = sl::COORDINATE_SYSTEM::RIGHT_HANDED_Y_UP; 
     
-    if (!filename.empty()) init_parameters.svo_input_filename.set(filename.c_str());
+    if (!filename.empty()) init_parameters.input.setFromSVOFile(filename.c_str());
 
     // Open the camera
     auto returned_state = zed.open(init_parameters);
