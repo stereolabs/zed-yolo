@@ -14,13 +14,13 @@ This is a brief explanation on how to enable the ZED camera support.
 
 - Windows 7 10, Ubuntu LTS, L4T
 - [ZED SDK](https://www.stereolabs.com/developers/) and its dependencies ([CUDA](https://developer.nvidia.com/cuda-downloads))
-- **Darknet** : https://github.com/AlexeyAB/darknet and its dependencies ([cuDNN](https://developer.nvidia.com/cudnn) and OpenCV)
+- [OpenCV](https://docs.opencv.org/4.x/da/df6/tutorial_py_table_of_contents_setup.html) built with CUDA and [cuDNN](https://developer.nvidia.com/cudnn)
 
-## Preparing Darknet installation
+## Preparing OpenCV installation
 
 ### cuDNN
 
-In order to get the best performance, [cuDNN](https://developer.nvidia.com/cudnn) should be install before compiling darknet. Heads over to this [TensorFlow documentation article](https://www.tensorflow.org/install/gpu#install_cuda_with_apt) which explains how to setup both CUDA and cuDNN on Ubuntu and Windows.
+In order to get the best performance, [cuDNN](https://developer.nvidia.com/cudnn) should be install before building OpenCV. Heads over to this [TensorFlow documentation article](https://www.tensorflow.org/install/gpu#install_cuda_with_apt) which explains how to setup both CUDA and cuDNN on Ubuntu and Windows.
 
 ### OpenCV
 
@@ -60,11 +60,7 @@ If the ZED SDK is installed, CMake will automatically detect it and compile with
     ...
 
 
-### ZED support Using Makefile
-
-To enable the ZED support in YOLO using the Makefile, simply enable [`GPU` and `ZED_CAMERA`](https://github.com/AlexeyAB/darknet/blob/cce34712f6928495f1fbc5d69332162fc23491b9/Makefile#L8), it's also recommended to enable `CUDNN` for improved performances.
-
-## 2. Launching the sample
+## Launching the YOLO 3D in C++
 
 Download the yolo weights, [yolov4](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights) for instance, and put them in the local folder.
 
@@ -75,19 +71,13 @@ SVO files are also supported :
 
     ./uselib data/coco.names cfg/yolov4.cfg yolov4.weights /path/to/svo/file.svo
 
-## How to use YOLO 3D in Python
+## 2. Launching the YOLO 3D in Python
 
-The native support is currently only in C++.
 
-For the Python version please refer to instructions in [zed_python_sample](./zed_python_sample)
 
 ## Using Docker
 
 A DockerFile is provided in the [docker folder](./docker)
-
-## Legacy repository
-
-The original YOLO 3D C++ sources are available in the [legacy branch](https://github.com/stereolabs/zed-yolo/tree/legacy)
 
 
 ## Support
