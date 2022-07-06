@@ -6,17 +6,13 @@ This package lets you use [YOLO (v2, v3 or v4)](http://pjreddie.com/darknet/yolo
 
 ## 1. Setup
 
-The setup detailed setup instructions are available in the [Darknet repository](https://github.com/AlexeyAB/darknet).
-
-This is a brief explanation on how to enable the ZED camera support.
-
 ### Prerequisites
 
 - Windows 7 10, Ubuntu LTS, L4T
 - [ZED SDK](https://www.stereolabs.com/developers/) and its dependencies ([CUDA](https://developer.nvidia.com/cuda-downloads))
 - [OpenCV](https://docs.opencv.org/4.x/da/df6/tutorial_py_table_of_contents_setup.html) built with CUDA and [cuDNN](https://developer.nvidia.com/cudnn)
 
-## Preparing OpenCV installation
+### Preparing OpenCV installation
 
 ### cuDNN
 
@@ -42,13 +38,6 @@ However the default version of cmake might be too old, it can easily be updated 
 sudo bash cmake_apt_update.sh
 ```
 
-## Compiling Darknet
-
-[Download](https://github.com/AlexeyAB/darknet) and compile darknet, following the instructions:
-
-- [How to compile on Linux](https://github.com/AlexeyAB/darknet#how-to-compile-on-linux)
-- [How to compile on Windows](https://github.com/AlexeyAB/darknet#how-to-compile-on-windows-using-vcpkg)
-
 ### ZED Support Using CMake (recommended)
 
 If the ZED SDK is installed, CMake will automatically detect it and compile with the ZED support. During the CMake configuration, a message will confirm that the ZED SDK was found.
@@ -60,25 +49,30 @@ If the ZED SDK is installed, CMake will automatically detect it and compile with
     ...
 
 
-## Launching the YOLO 3D in C++
+## 2. Launching the YOLO 3D in C++
 
 Download the yolo weights, [yolov4](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights) for instance, and put them in the local folder.
 
+    cd zed_cpp_sample/
+    
+    mkdir build
+    cd build
+    cmake ..
+    make
+    
+    ./build/yolo_zed 
 
-    ./uselib data/coco.names cfg/yolov4.cfg yolov4.weights zed_camera
+## 3. Launching the YOLO 3D in Python
 
-SVO files are also supported :
+Download the yolo weights, [yolov4](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights) for instance, and put them in the local folder.
 
-    ./uselib data/coco.names cfg/yolov4.cfg yolov4.weights /path/to/svo/file.svo
-
-## 2. Launching the YOLO 3D in Python
-
-
+    cd zed_python_sample/
+    
+    python3 zed_yolo.py
 
 ## Using Docker
 
 A DockerFile is provided in the [docker folder](./docker)
-
 
 ## Support
 If you need assistance go to our Community site at https://community.stereolabs.com/
