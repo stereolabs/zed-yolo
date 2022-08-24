@@ -1,3 +1,5 @@
+# [This project is now out of date, the ZED is natively supported in YOLO, use this instead : https://github.com/AlexeyAB/darknet](https://github.com/AlexeyAB/darknet)
+
 # Stereolabs ZED - YOLO 3D in Python
 
 This package lets you use YOLO the deep learning object detector using the ZED stereo camera in Python 3.
