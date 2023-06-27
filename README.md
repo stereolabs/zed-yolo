@@ -1,90 +1,25 @@
-# [This project is now out of date, the ZED is natively supported in YOLO, use this instead : https://github.com/AlexeyAB/darknet](https://github.com/AlexeyAB/darknet)
+# Using YOLO and the ZED
 
-# Stereolabs ZED - YOLO 3D
+For a detailed explanation please refer to the documentation https://www.stereolabs.com/docs/yolo/
 
-This package lets you use [YOLO (v2, v3 or v4)](http://pjreddie.com/darknet/yolo/), the deep learning object detector using the ZED stereo camera in Python 3 or C++.
+This repository contains two samples to use YOLO with the ZED in C++ using the highly optimized library TensorRT, and a Python sample that uses Pytorch and the official package of ultralytics for YOLOv8
 
-## 1. Setup
-
-The setup detailed setup instructions are available in the [Darknet repository](https://github.com/AlexeyAB/darknet).
-
-This is a brief explanation on how to enable the ZED camera support.
-
-### Prerequisites
-
-- Windows 7 10, Ubuntu LTS, L4T
-- [ZED SDK](https://www.stereolabs.com/developers/) and its dependencies ([CUDA](https://developer.nvidia.com/cuda-downloads))
-- **Darknet** : https://github.com/AlexeyAB/darknet and its dependencies ([cuDNN](https://developer.nvidia.com/cudnn) and OpenCV)
-
-## Preparing Darknet installation
-
-### cuDNN
-
-In order to get the best performance, [cuDNN](https://developer.nvidia.com/cudnn) should be install before compiling darknet. Heads over to this [TensorFlow documentation article](https://www.tensorflow.org/install/gpu#install_cuda_with_apt) which explains how to setup both CUDA and cuDNN on Ubuntu and Windows.
-
-### OpenCV
-
-OpenCV binaries can be downloaded and install from [opencv.org](https://opencv.org/releases/).
-
-Alternatively, on Ubuntu :
-
-    sudo apt install pkg-config libopencv-dev
-
-### CMake
-
-On Windows, download and install CMAKE using the binary [available here](https://cmake.org/download/).
-
-On Ubuntu, cmake can be installed using the package manager, i.e : `sudo apt install cmake`
-
-However the default version of cmake might be too old, it can easily be updated using the script (located in this repository):
-
-```bash
-sudo bash cmake_apt_update.sh
-```
-
-## Compiling Darknet
-
-[Download](https://github.com/AlexeyAB/darknet) and compile darknet, following the instructions:
-
-- [How to compile on Linux](https://github.com/AlexeyAB/darknet#how-to-compile-on-linux)
-- [How to compile on Windows](https://github.com/AlexeyAB/darknet#how-to-compile-on-windows-using-vcpkg)
-
-### ZED Support Using CMake (recommended)
-
-If the ZED SDK is installed, CMake will automatically detect it and compile with the ZED support. During the CMake configuration, a message will confirm that the ZED SDK was found.
-
-    ...
-    -- A library with BLAS API found.
-    -- ZED SDK enabled
-    -- Found OpenMP_C: -fopenmp (found version "4.5")
-    ...
+Other sample using OpenCV DNN or YOLOv5 using the TensorRT API in [C++](https://github.com/stereolabs/zed-sdk/tree/master/object%20detection/custom%20detector/cpp) or [Pytorch](https://github.com/stereolabs/zed-sdk/tree/master/object%20detection/custom%20detector/python) can be found in the main [ZED SDK repository](https://github.com/stereolabs/zed-sdk/tree/master/object%20detection/custom%20detector/cpp)
 
 
-### ZED support Using Makefile
+## YOLO v5, v6 or v8 using TensorRT and C++
 
-To enable the ZED support in YOLO using the Makefile, simply enable [`GPU` and `ZED_CAMERA`](https://github.com/AlexeyAB/darknet/blob/cce34712f6928495f1fbc5d69332162fc23491b9/Makefile#L8), it's also recommended to enable `CUDNN` for improved performances.
+In the folder [tensorrt_yolov5-v6-v8_onnx](./tensorrt_yolov5-v6-v8_onnx) you will find a sample that is able to run an ONNX model exported from YOLO architecture and using it with the ZED.
 
-## 2. Launching the sample
+This sample is designed to run a state of the art object detection model using the highly optimized TensorRT framework. The image are taken from the ZED SDK, and the 2D box detections are then ingested into the ZED SDK to extract 3D informations (localization, 3D bounding boxes) and tracking.
 
-Download the yolo weights, [yolov4](https://github.com/AlexeyAB/darknet/releases/download/darknet_yolo_v3_optimal/yolov4.weights) for instance, and put them in the local folder.
+This sample is using a TensorRT optimized ONNX model. It is compatible with YOLOv8, YOLOv5 and YOLOv6. It can be used with the default model trained on COCO dataset (80 classes) provided by the framework maintainers.
 
-
-    ./uselib data/coco.names cfg/yolov4.cfg yolov4.weights zed_camera
-
-SVO files are also supported :
-
-    ./uselib data/coco.names cfg/yolov4.cfg yolov4.weights /path/to/svo/file.svo
-
-## How to use YOLO 3D in Python
-
-The native support is currently only in C++.
-
-For the Python version please refer to instructions in [zed_python_sample](./zed_python_sample)
-
-## Using Docker
-
-A DockerFile is provided in the [docker folder](./docker)
+A custom detector can be trained with the same architecture.
 
 
-## Support
-If you need assistance go to our Community site at https://community.stereolabs.com/
+## YOLOv8 Pytorch
+
+In the folder [pytorch_yolov8](./pytorch_yolov8) you will find a sample that interface PyTorch ultralytics package with the ZED SDK in Python.
+
+This sample shows how to detect custom objects using the official Pytorch implementation of YOLOv8 from a ZED camera and ingest them into the ZED SDK to extract 3D informations and tracking for each objects.
