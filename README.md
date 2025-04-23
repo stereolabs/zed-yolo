@@ -1,25 +1,43 @@
 # Using YOLO and the ZED
 
-For a detailed explanation please refer to the documentation https://www.stereolabs.com/docs/yolo/
+For a detailed explanation, please refer to the documentation: https://www.stereolabs.com/docs/yolo/
 
-This repository contains two samples to use YOLO with the ZED in C++ using the highly optimized library TensorRT, and a Python sample that uses Pytorch and the official package of ultralytics for YOLOv8
+This repository contains multiple samples demonstrating how to use YOLO models with the ZED camera, utilizing the highly optimized TensorRT library, as well as a Python sample that uses PyTorch and the official Ultralytics package for YOLOv8.
 
-Other sample using OpenCV DNN or YOLOv5 using the TensorRT API in [C++](https://github.com/stereolabs/zed-sdk/tree/master/object%20detection/custom%20detector/cpp) or [Pytorch](https://github.com/stereolabs/zed-sdk/tree/master/object%20detection/custom%20detector/python) can be found in the main [ZED SDK repository](https://github.com/stereolabs/zed-sdk/tree/master/object%20detection/custom%20detector/cpp)
+Other samples using OpenCV DNN or YOLOv5 with the TensorRT API in [C++](https://github.com/stereolabs/zed-sdk/tree/master/object%20detection/custom%20detector/cpp) or [PyTorch](https://github.com/stereolabs/zed-sdk/tree/master/object%20detection/custom%20detector/python) can be found in the main [ZED SDK repository](https://github.com/stereolabs/zed-sdk/tree/master/object%20detection/custom%20detector/cpp).
 
+These samples are designed to run state-of-the-art object detection models using the highly optimized TensorRT framework. Images are captured with the ZED SDK to detect 2D bounding boxes using YOLO, and the ZED SDK then extracts 3D information (localization, 3D bounding boxes) and performs tracking.
 
-## YOLO v5, v6 or v8 using TensorRT and C++
+## YOLO v5, v6, v7, v8, v9, v10, v11, v12 using TensorRT and C++
 
-In the folder [tensorrt_yolov5-v6-v8_onnx](./tensorrt_yolov5-v6-v8_onnx) you will find a sample that is able to run an ONNX model exported from YOLO architecture and using it with the ZED.
+There are two main ways of running a YOLO ONNX model with the ZED and TensorRT:
 
-This sample is designed to run a state of the art object detection model using the highly optimized TensorRT framework. The image are taken from the ZED SDK, and the 2D box detections are then ingested into the ZED SDK to extract 3D informations (localization, 3D bounding boxes) and tracking.
+1. **[Recommended]** Use the `OBJECT_DETECTION_MODEL::CUSTOM_YOLOLIKE_BOX_OBJECTS` mode in the ZED SDK API to natively load a YOLO ONNX model. The inference code is fully optimized and internally uses TensorRT. The output is directly available as 2D and 3D tracked objects. This is the easiest and most optimized solution for supported models. ONNX to TensorRT engine generation (optimized model) is automatically handled by the ZED SDK.
 
-This sample is using a TensorRT optimized ONNX model. It is compatible with YOLOv8, YOLOv5 and YOLOv6. It can be used with the default model trained on COCO dataset (80 classes) provided by the framework maintainers.
+   The model format is inferred from the output tensor size. If a future model uses a similar output format to the supported models, it should work.
 
-A custom detector can be trained with the same architecture.
+2. **[Advanced - for unsupported models]** Use external code for TensorRT model inference, then ingest the detected boxes into the ZED SDK. This approach is for advanced users, as it requires maintaining the inference code. It is suitable for models not supported by the previously mentioned method.
 
+### Exporting the model to ONNX (mandatory step)
 
-## YOLOv8 Pytorch
+Refer to the documentation: https://www.stereolabs.com/docs/yolo/ to export your YOLO model to ONNX for compatibility. Depending on the version, there may be multiple export methods, and not all are compatible or optimized.
 
-In the folder [pytorch_yolov8](./pytorch_yolov8) you will find a sample that interface PyTorch ultralytics package with the ZED SDK in Python.
+You can use the default model trained on the COCO dataset (80 classes) provided by the framework maintainers, or a custom-trained model.
 
-This sample shows how to detect custom objects using the official Pytorch implementation of YOLOv8 from a ZED camera and ingest them into the ZED SDK to extract 3D informations and tracking for each objects.
+### C++ Version: Native Inference (recommended)
+
+In the folder [cpp_tensorrt_yolo_onnx_native](./cpp_tensorrt_yolo_onnx_native), you will find a sample that runs an ONNX model exported from a YOLO architecture using the ZED with the C++ API.
+
+### Python Version: Native Inference
+
+In the folder [python_tensorrt_yolo_onnx_native](./python_tensorrt_yolo_onnx_native), you will find a sample that runs an ONNX model exported from a YOLO architecture using the ZED with the Python API.
+
+### C++ Version: External Inference
+
+In the folder [cpp_tensorrt_yolo_onnx](./cpp_tensorrt_yolo_onnx), you will find a sample that runs an ONNX model exported from a YOLO architecture using the ZED with the C++ API, leveraging external TensorRT inference code and a bounding box ingestion function.
+
+## YOLOv8 PyTorch
+
+In the folder [pytorch_yolov8](./pytorch_yolov8), you will find a sample that interfaces the PyTorch Ultralytics package with the ZED SDK in Python.
+
+This sample demonstrates how to detect custom objects using the official PyTorch implementation of YOLOv8 from a ZED camera and ingest them into the ZED SDK to extract 3D information and track each object.

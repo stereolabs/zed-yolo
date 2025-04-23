@@ -9,7 +9,7 @@
 #define FADED_RENDERING
 const float grid_size = 10.0f;
 
-GLchar* VERTEX_SHADER =
+const GLchar* VERTEX_SHADER =
         "#version 330 core\n"
         "layout(location = 0) in vec3 in_Vertex;\n"
         "layout(location = 1) in vec4 in_Color;\n"
@@ -20,7 +20,7 @@ GLchar* VERTEX_SHADER =
         "	gl_Position = u_mvpMatrix * vec4(in_Vertex, 1);\n"
         "}";
 
-GLchar* FRAGMENT_SHADER =
+const GLchar* FRAGMENT_SHADER =
         "#version 330 core\n"
         "in vec4 b_color;\n"
         "layout(location = 0) out vec4 out_Color;\n"
@@ -105,7 +105,7 @@ void CloseFunc(void) {
         currentInstance_->exit();
 }
 
-void GLViewer::init(int argc, char **argv, sl::CameraParameters &param, bool isTrackingON) {
+void GLViewer::init(int argc, char **argv, const sl::CameraParameters& param, bool isTrackingON) {
     glutInit(&argc, argv);
     int wnd_w = glutGet(GLUT_SCREEN_WIDTH);
     int wnd_h = glutGet(GLUT_SCREEN_HEIGHT);
@@ -133,10 +133,10 @@ void GLViewer::init(int argc, char **argv, sl::CameraParameters &param, bool isT
     isTrackingON_ = isTrackingON;
 
     // Compile and create the shader
-    shader.it = Shader(VERTEX_SHADER, FRAGMENT_SHADER);
+    shader.it.set(VERTEX_SHADER, FRAGMENT_SHADER);
     shader.MVP_Mat = glGetUniformLocation(shader.it.getProgramId(), "u_mvpMatrix");
 
-    shaderLine.it = Shader(VERTEX_SHADER, FRAGMENT_SHADER);
+    shaderLine.it.set(VERTEX_SHADER, FRAGMENT_SHADER);
     shaderLine.MVP_Mat = glGetUniformLocation(shaderLine.it.getProgramId(), "u_mvpMatrix");
 
     // Create the camera
@@ -191,7 +191,7 @@ void GLViewer::render() {
     }
 }
 
-void GLViewer::updateData(sl::Mat &matXYZRGBA, std::vector<sl::ObjectData> &objs, sl::Transform& pose) {
+void GLViewer::updateData(sl::Mat &matXYZRGBA, std::vector<sl::ObjectData> &objs, sl::Transform& pose, const sl::CustomObjectDetectionRuntimeParameters& obj_runtime_params) {
     mtx.lock();
     pointCloud_.pushNewPC(matXYZRGBA);
     BBox_edges.clear();
@@ -203,8 +203,21 @@ void GLViewer::updateData(sl::Mat &matXYZRGBA, std::vector<sl::ObjectData> &objs
     cam_pose.setTranslation(tr_0);
 
     for (unsigned int i = 0; i < objs.size(); i++) {
-        if (renderObject(objs[i], isTrackingON_))
-        {
+        bool show = renderObject(objs[i], isTrackingON_);
+
+        // We can still display the object even if it is tracked and static, even if its state is SEARCHING
+        if (!show && isTrackingON_ && objs[i].tracking_state == sl::OBJECT_TRACKING_STATE::SEARCHING) {
+            if (obj_runtime_params.object_class_detection_properties.find(objs[i].raw_label) != obj_runtime_params.object_class_detection_properties.end()) {
+                if (obj_runtime_params.object_class_detection_properties.at(objs[i].raw_label).is_static)
+                    show = true;
+            }
+            else {
+                if (obj_runtime_params.object_detection_properties.is_static)
+                    show = true;
+            }
+        }
+
+        if (show) {
             auto bb_ = objs[i].bounding_box;
             if (!bb_.empty()) {
                 auto clr_class = getColorClass((int) objs[i].raw_label);
@@ -379,9 +392,12 @@ void GLViewer::printText() {
 void GLViewer::clearInputs() {
     mouseMotion_[0] = mouseMotion_[1] = 0;
     mouseWheelPosition_ = 0;
-    for (unsigned int i = 0; i < 256; ++i)
+    for (unsigned int i = 0; i < 256; ++i) {
+        if (keyStates_[i] == KEY_STATE::UP)
+            last_key = i;
         if (keyStates_[i] != KEY_STATE::DOWN)
             keyStates_[i] = KEY_STATE::FREE;
+    }
 }
 
 void GLViewer::drawCallback() {
@@ -734,7 +750,11 @@ sl::Transform Simple3DObject::getModelMatrix() const {
     return tmp;
 }
 
-Shader::Shader(GLchar* vs, GLchar* fs) {
+Shader::Shader(const GLchar* vs, const GLchar* fs) {
+    set(vs, fs);
+}
+
+void Shader::set(const GLchar* vs, const GLchar* fs) {
     if (!compile(verterxId_, GL_VERTEX_SHADER, vs)) {
         std::cout << "ERROR: while compiling vertex shader" << std::endl;
     }
@@ -770,19 +790,19 @@ Shader::Shader(GLchar* vs, GLchar* fs) {
 }
 
 Shader::~Shader() {
-    if (verterxId_ != 0)
+    if (verterxId_ != 0 && glIsShader(verterxId_))
         glDeleteShader(verterxId_);
-    if (fragmentId_ != 0)
+    if (fragmentId_ != 0 && glIsShader(fragmentId_))
         glDeleteShader(fragmentId_);
-    if (programId_ != 0)
-        glDeleteShader(programId_);
+    if (programId_ != 0 && glIsProgram(programId_))
+        glDeleteProgram(programId_);
 }
 
 GLuint Shader::getProgramId() {
     return programId_;
 }
 
-bool Shader::compile(GLuint &shaderId, GLenum type, GLchar* src) {
+bool Shader::compile(GLuint &shaderId, GLenum type, const GLchar* src) {
     shaderId = glCreateShader(type);
     if (shaderId == 0) {
         std::cout << "ERROR: shader type (" << type << ") does not exist" << std::endl;
@@ -810,7 +830,7 @@ bool Shader::compile(GLuint &shaderId, GLenum type, GLchar* src) {
     return true;
 }
 
-GLchar* POINTCLOUD_VERTEX_SHADER =
+const GLchar* POINTCLOUD_VERTEX_SHADER =
         "#version 330 core\n"
         "layout(location = 0) in vec4 in_VertexRGBA;\n"
         "uniform mat4 u_mvpMatrix;\n"
@@ -823,7 +843,7 @@ GLchar* POINTCLOUD_VERTEX_SHADER =
         "	gl_Position = u_mvpMatrix * vec4(in_VertexRGBA.xyz, 1);\n"
         "}";
 
-GLchar* POINTCLOUD_FRAGMENT_SHADER =
+const GLchar* POINTCLOUD_FRAGMENT_SHADER =
         "#version 330 core\n"
         "in vec4 b_color;\n"
         "layout(location = 0) out vec4 out_Color;\n"
@@ -859,7 +879,7 @@ void PointCloud::initialize(sl::Resolution res) {
 
     checkError(cudaGraphicsGLRegisterBuffer(&bufferCudaID_, bufferGLID_, cudaGraphicsRegisterFlagsWriteDiscard));
 
-    shader.it = Shader(POINTCLOUD_VERTEX_SHADER, POINTCLOUD_FRAGMENT_SHADER);
+    shader.it.set(POINTCLOUD_VERTEX_SHADER, POINTCLOUD_FRAGMENT_SHADER);
     shader.MVP_Mat = glGetUniformLocation(shader.it.getProgramId(), "u_mvpMatrix");
 
     matGPU_.alloc(res, sl::MAT_TYPE::F32_C4, sl::MEM::GPU);

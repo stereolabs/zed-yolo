@@ -104,16 +104,25 @@ private:
 class Shader {
 public:
 
-    Shader() {
-    }
-    Shader(GLchar* vs, GLchar* fs);
+    Shader() : verterxId_(0), fragmentId_(0), programId_(0) {}
+    Shader(const GLchar* vs, const GLchar* fs);
     ~Shader();
+
+    // Delete the move constructor and move assignment operator
+    Shader(Shader&&) = delete;
+    Shader& operator=(Shader&&) = delete;
+
+    // Delete the copy constructor and copy assignment operator
+    Shader(const Shader&) = delete;
+    Shader& operator=(const Shader&) = delete;
+
+    void set(const GLchar* vs, const GLchar* fs);
     GLuint getProgramId();
 
     static const GLint ATTRIB_VERTICES_POS = 0;
     static const GLint ATTRIB_COLOR_POS = 1;
 private:
-    bool compile(GLuint &shaderId, GLenum type, GLchar* src);
+    bool compile(GLuint &shaderId, GLenum type, const GLchar* src);
     GLuint verterxId_;
     GLuint fragmentId_;
     GLuint programId_;
@@ -230,9 +239,17 @@ public:
     GLViewer();
     ~GLViewer();
     bool isAvailable();
+    bool isPlaying() const { return play; }
+    void setPlaying(const bool p) { play = p; }
 
-    void init(int argc, char **argv, sl::CameraParameters& param, bool isTrackingON);
-    void updateData(sl::Mat& matXYZRGBA, std::vector<sl::ObjectData>& objs, sl::Transform &cam_pose);
+    void init(int argc, char **argv, const sl::CameraParameters& param, bool isTrackingON);
+    void updateData(sl::Mat& matXYZRGBA, std::vector<sl::ObjectData>& objs, sl::Transform &cam_pose, const sl::CustomObjectDetectionRuntimeParameters& obj_runtime_params);
+
+    int getKey() {
+        int const key{last_key};
+        last_key = -1;
+        return key;
+    }
 
     void exit();
 private:
@@ -298,6 +315,9 @@ private:
     Simple3DObject BBox_faces;
     Simple3DObject skeletons;
     Simple3DObject floor_grid;
+
+    bool play{true};
+    int last_key{-1};
 };
 
 #endif /* __VIEWER_INCLUDE__ */
