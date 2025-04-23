@@ -83,11 +83,12 @@ public:
     static int build_engine(std::string onnx_path, std::string engine_path, OptimDim dyn_dim_profile);
 
     int init(std::string engine_path);
-    std::vector<BBoxInfo> run(sl::Mat left_sl, int orig_image_h, int orig_image_w, float thres);
+    std::vector<BBoxInfo> run(sl::Mat &left_sl, int orig_image_h, int orig_image_w, float thres);
 
     sl::Resolution getInferenceSize() {
         return sl::Resolution(input_width, input_height);
     }
+    cudaStream_t stream;
 
 private:
 
@@ -107,14 +108,14 @@ private:
 
     YOLO_MODEL_VERSION_OUTPUT_STYLE yolo_model_version;
 
-
-    float *h_input, *h_output;
-    float *d_input, *d_output;
+    float *h_output;
+    float *d_output;
+        
+    sl::Mat blob; // gpu input tensor
 
     nvinfer1::IRuntime* runtime;
     nvinfer1::ICudaEngine* engine;
     nvinfer1::IExecutionContext* context;
-    cudaStream_t stream;
 
     bool is_init = false;
 
