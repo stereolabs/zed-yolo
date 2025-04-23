@@ -24,7 +24,7 @@ There are two main ways of running a YOLO ONNX model with the ZED and TensorRT:
 
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/sunsmarterjie/yolov12/51901136772609c36df65cec1131d54b4f1a44df/assets/tradeoff.svg" width=70%> <br>
+  <img src="https://raw.githubusercontent.com/sunsmarterjie/yolov12/51901136772609c36df65cec1131d54b4f1a44df/assets/tradeoff.svg" width=90%> <br>
   YOLO Comparison in terms of latency-accuracy (left) and FLOPs-accuracy (right) trade-offs (from <a href="https://github.com/sunsmarterjie/yolov12">YOLOv12</a>)
 </p>
 
