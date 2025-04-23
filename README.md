@@ -2,6 +2,10 @@
 
 For a detailed explanation, please refer to the documentation: https://www.stereolabs.com/docs/yolo/
 
+<p align="center">
+<img src="https://docs.stereolabs.com/yolo/images/zed-yolo-3D.jpg" width="600">
+</p>
+
 This repository contains multiple samples demonstrating how to use YOLO models with the ZED camera, utilizing the highly optimized TensorRT library, as well as a Python sample that uses PyTorch and the official Ultralytics package for YOLOv8.
 
 Other samples using OpenCV DNN or YOLOv5 with the TensorRT API in [C++](https://github.com/stereolabs/zed-sdk/tree/master/object%20detection/custom%20detector/cpp) or [PyTorch](https://github.com/stereolabs/zed-sdk/tree/master/object%20detection/custom%20detector/python) can be found in the main [ZED SDK repository](https://github.com/stereolabs/zed-sdk/tree/master/object%20detection/custom%20detector/cpp).
@@ -17,6 +21,14 @@ There are two main ways of running a YOLO ONNX model with the ZED and TensorRT:
    The model format is inferred from the output tensor size. If a future model uses a similar output format to the supported models, it should work.
 
 2. **[Advanced - for unsupported models]** Use external code for TensorRT model inference, then ingest the detected boxes into the ZED SDK. This approach is for advanced users, as it requires maintaining the inference code. It is suitable for models not supported by the previously mentioned method.
+
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/sunsmarterjie/yolov12/51901136772609c36df65cec1131d54b4f1a44df/assets/tradeoff.svg" width=70%> <br>
+  YOLO Comparison in terms of latency-accuracy (left) and FLOPs-accuracy (right) trade-offs (from <a href="https://github.com/sunsmarterjie/yolov12">YOLOv12</a>)
+</p>
+
+
 
 ### Exporting the model to ONNX (mandatory step)
 
